@@ -67,21 +67,22 @@ A native Android client application for the **Casa Vista Resort Management Syste
 
 ## 🗄️ Database Setup Instructions
 
-To set up the database schema and insert sample test records:
+The repository includes the official Supabase PostgreSQL database dump in `/database/casavista.sql` (and `/database/schema.sql`). It sets up the multi-schema architecture (`resort` and `pos`), PL/pgSQL business logic functions, constraints, exclusion triggers, and seed data.
 
-1. Open your PostgreSQL database or [Supabase SQL Editor](https://supabase.com).
-2. Open the database script file located at:
-   ```
-   /database/casavista.sql  (or /database/schema.sql)
-   ```
-3. Execute the SQL script. This will create the required tables:
-   - `users`
-   - `catalog_items`
-   - `bookings`
-   - `announcements`
-   - `employees`
-   - `history_logs`
-4. The script automatically inserts pre-populated sample records (sample users, resort facilities, active bookings, announcements, and employees) so you can test all features immediately.
+### Option A: Via Supabase SQL Editor (Recommended)
+1. Log in to your [Supabase Dashboard](https://supabase.com).
+2. Go to the **SQL Editor** tab.
+3. Click **New Query**, copy the contents of [`/database/casavista.sql`](database/casavista.sql), and paste it into the query window.
+4. Click **Run**. This will create:
+   - **Schemas**: `resort` and `pos`
+   - **Tables**: `customer`, `staff`, `room`, `court`, `booking`, `booking_room`, `payment`, `pos_item`, `pos_order`, `pos_order_item`
+   - **Functions & Triggers**: Room caps enforcement (`fn_enforce_br1_room_caps`), exclusive booking collision prevention (`fn_check_exclusive_collision`), stay sync (`fn_sync_booking_room_stay`)
+   - **Seed Records**: Pre-populated sample staff, courts, rooms, customers, and POS catalog items for immediate testing.
+
+### Option B: Via Command Line (`psql` / `pg_restore`)
+```bash
+psql -h <your-supabase-db-host> -U postgres -d postgres -f database/casavista.sql
+```
 
 ---
 
