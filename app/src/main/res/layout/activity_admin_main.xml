@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FBF8F3"
+    tools:context=".admin.AdminMainActivity">
+
+    <!-- Container where Admin Fragments (Dashboard, Bookings, POS, Profile) are loaded -->
+    <FrameLayout
+        android:id="@+id/adminFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/adminBottomNavigationView"
+        tools:layout="@layout/fragment_admin_dashboard" />
+
+    <!-- Admin Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/adminBottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/bg_card"
+        app:backgroundTint="@color/bg_card"
+        app:itemIconTint="@color/selector_nav_colors"
+        app:itemTextColor="@color/selector_nav_colors"
+        app:menu="@menu/admin_bottom_nav_menu" />
+
+</RelativeLayout>

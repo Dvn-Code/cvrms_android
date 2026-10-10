@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorControlNormal">
+
+    <!-- Outer court boundary outline -->
+    <path
+        android:strokeColor="#615E5E"
+        android:strokeWidth="1.5"
+        android:pathData="M3,3h18v18h-18z" />
+
+    <!-- Center court line -->
+    <path
+        android:strokeColor="#615E5E"
+        android:strokeWidth="1.5"
+        android:pathData="M3,12h18" />
+
+    <!-- Center court circle -->
+    <path
+        android:strokeColor="#615E5E"
+        android:strokeWidth="1.5"
+        android:pathData="M9,12a3,3 0,1 1,6 0a3,3 0,1 1,-6 0" />
+
+</vector>

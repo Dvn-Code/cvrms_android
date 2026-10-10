@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/card_bg"
+    android:overScrollMode="never">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Facility &amp; Room Status Manager"
+            android:textColor="@color/admin_text_primary"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Change room &amp; court availability status"
+            android:textColor="@color/admin_text_secondary"
+            android:textSize="12sp" />
+
+        <!-- Select Facility Spinner -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="SELECT ROOM / COURT"
+            android:textColor="@color/admin_text_primary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginTop="6dp"
+            app:cardBackgroundColor="@color/bg_card_secondary"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/border_soft"
+            app:strokeWidth="1dp">
+
+            <Spinner
+                android:id="@+id/spinnerFacilityList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingHorizontal="4dp" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Status Radio / Choice -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="NEW STATUS"
+            android:textColor="@color/admin_text_primary"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:id="@+id/radioGroupFacilityStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
+
+            <RadioButton
+                android:id="@+id/radioStatusAvailable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingVertical="4dp"
+                android:text="Available (Open for booking)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioStatusMaintenance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="4dp"
+                android:text="Maintenance (Repairs / Servicing)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioStatusCleaning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="4dp"
+                android:text="Cleaning (Housekeeping / Deep Clean)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioStatusUnavailable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="4dp"
+                android:text="Unavailable (General)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+    </LinearLayout>
+</ScrollView>

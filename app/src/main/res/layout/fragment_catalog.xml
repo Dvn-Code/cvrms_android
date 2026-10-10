@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/resort_bg"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="20dp">
+
+    <!-- HEADER SECTION -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.25"
+                android:text="CASAVISTA"
+                android:textColor="@color/court_dark_brown"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:letterSpacing="0.38"
+                android:text="RESORT"
+                android:textColor="@color/text_muted"
+                android:textSize="9sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tvHomeGreeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:text="KUMUSTA, DIVIN!"
+                android:textColor="@color/court_dark_brown"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- AVATAR STACK -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardCatalogAvatar"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="true"
+            android:focusable="true"
+            app:cardCornerRadius="22dp"
+            app:cardElevation="2dp"
+            app:strokeWidth="1.5dp"
+            app:strokeColor="@color/summary_bar_gold">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+                <TextView
+                    android:id="@+id/tvHomeAvatarInitials"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/court_dark_brown"
+                    android:gravity="center"
+                    android:text="J"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.imageview.ShapeableImageView
+                    android:id="@+id/imgHomeAvatar"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone"
+                    app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+            </FrameLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </RelativeLayout>
+
+    <!-- CATEGORY FILTER TABS -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabCatAll"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="All"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="@color/court_dark_brown"
+                app:cornerRadius="21dp"
+                app:elevation="2dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabCatRooms"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Rooms"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#FAF6EE"
+                app:cornerRadius="21dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabCatPickleball"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Pickleball"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#FAF6EE"
+                app:cornerRadius="21dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabCatBasketball"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Basketball"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#FAF6EE"
+                app:cornerRadius="21dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/tabCatBuyout"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="42dp"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"
+                android:text="Buyout"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:backgroundTint="#FAF6EE"
+                app:cornerRadius="21dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- SECTION TITLE -->
+    <TextView
+        android:id="@+id/tvAmenitiesHeader"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="20dp"
+        android:paddingBottom="12dp"
+        android:text="Resort Amenities"
+        android:textColor="@color/court_dark_brown"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <!-- CATALOG RECYCLERVIEW -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvCatalogList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingBottom="24dp" />
+
+</LinearLayout>

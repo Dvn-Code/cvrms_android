@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/resort_bg"
+    tools:context=".user.MainActivity">
+
+    <!-- Container where User Fragments (Home, Catalog, Court, Bookings, Profile) are loaded -->
+    <FrameLayout
+        android:id="@+id/fragment_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/bottomNavigationView"
+        tools:layout="@layout/fragment_home" />
+
+    <!-- Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottomNavigationView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@color/card_bg"
+        app:itemIconTint="@color/text_primary"
+        app:itemRippleColor="@color/underline_tan"
+        app:itemTextColor="@color/text_primary"
+        app:menu="@menu/bottom_nav_menu" />
+
+</RelativeLayout>

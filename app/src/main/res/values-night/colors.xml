@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- System Defaults -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- Dark Mode Inverted Palette -->
+    <color name="resort_bg">#1C1814</color>
+    <color name="card_bg">#2A241E</color>
+    <color name="primary_dark">#F2EBE1</color>
+    <color name="welcome_gold">#E6B980</color>
+    <color name="label_tan">#C5B8A5</color>
+    <color name="underline_tan">#3A322A</color>
+    <color name="btn_login_gold">#E6B980</color>
+    <color name="btn_login_text">#1C1814</color>
+    <color name="social_btn_bg">#2A241E</color>
+    <color name="social_btn_text">#F2EBE1</color>
+    <color name="text_muted">#A09382</color>
+    <color name="divider_line">#3A322A</color>
+    <color name="border_soft">#3A322A</color>
+
+    <!-- Calendar & Court Booking (Dark) -->
+    <color name="court_dark_brown">#F2EBE1</color>
+    <color name="gold_selected_day">#E6B980</color>
+    <color name="gold_selected_slot">#E6B980</color>
+    <color name="slot_disabled_bg">#25201B</color>
+    <color name="slot_disabled_text">#5A5043</color>
+    <color name="summary_bar_gold">#3A2F20</color>
+    <color name="price_bright_gold">#F5CC47</color>
+    <color name="btn_confirm_yellow">#E6B980</color>
+    <color name="calendar_muted_day">#5A5043</color>
+    <color name="calendar_active_day">#F2EBE1</color>
+
+    <!-- App System Aliases (Dark) -->
+    <color name="bg_primary">#1C1814</color>
+    <color name="text_primary">#F2EBE1</color>
+    <color name="text_secondary">#C5B8A5</color>
+    <color name="accent_gold">#E6B980</color>
+    <color name="divider_color">#3A322A</color>
+    <color name="button_bg">#3A2F20</color>
+    <color name="avatar_bg">#E6B980</color>
+    <color name="avatar_text">#1C1814</color>
+
+    <!-- Admin Palette (Dark Mode) -->
+    <color name="bg_main">#121212</color>
+    <color name="bg_card">#1E1E1E</color>
+    <color name="bg_card_secondary">#282420</color>
+    <color name="bg_input">#2A2A2A</color>
+
+    <!-- Admin Typography (Dark Mode) -->
+    <color name="admin_text_primary">#F5F0EB</color>
+    <color name="admin_text_secondary">#B0AAA4</color>
+    <color name="admin_text_muted">#7A7571</color>
+
+    <!-- Brand Accents -->
+    <color name="admin_accent_gold">#D4A359</color>
+    <color name="accent_gold_dark">#EBB94B</color>
+    <color name="status_green">#5B8E7D</color>
+
+    <!-- History Card Colors (Dark Mode) -->
+    <color name="history_card_bg">#241E1A</color>
+    <color name="history_text_primary">#FFFFFF</color>
+    <color name="history_text_secondary">#B0B0B0</color>
+    <color name="history_text_muted">#888888</color>
+    <color name="history_timeline_line">#382E22</color>
+
+</resources>

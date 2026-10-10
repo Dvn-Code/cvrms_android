@@ -1,0 +1,538 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_main">
+
+    <!-- Scrollable Main Content -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/btnChargePos"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:padding="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Header Section -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:letterSpacing="0.05"
+                        android:text="STAFF | SECRETARY"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="POINT OF SALE"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- Avatar Header -->
+                <FrameLayout
+                    android:id="@+id/cardAdminPosAvatar"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:clickable="true"
+                    android:focusable="true">
+
+                    <TextView
+                        android:id="@+id/tvPosHeaderInitials"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/bg_avatar_circle"
+                        android:gravity="center"
+                        android:text="JD"
+                        android:textColor="@color/avatar_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/imgPosHeaderAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/CircleImageView"
+                        app:strokeColor="@color/accent_gold"
+                        app:strokeWidth="1.5dp" />
+                </FrameLayout>
+            </RelativeLayout>
+
+            <!-- Category Pills -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCatCourts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="@color/accent_gold"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="Courts"
+                        android:textAllCaps="false"
+                        android:textColor="@color/bg_main"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="20dp"
+                        app:strokeWidth="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCatCottage"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:layout_marginEnd="8dp"
+                        android:backgroundTint="@color/bg_card"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="Cottage"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="20dp"
+                        app:strokeWidth="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCatRentals"
+                        android:layout_width="wrap_content"
+                        android:layout_height="40dp"
+                        android:backgroundTint="@color/bg_card"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:text="Rentals"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="20dp"
+                        app:strokeWidth="0dp" />
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <!-- Items Grid -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Row 1: Item 1 & Item 2 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <!-- Item 1 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardItem1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="@color/bg_card"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="14dp">
+
+                            <TextView
+                                android:id="@+id/tvItem1Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="Pickleball · Daytime (1hr)"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/tvItem1Price"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="₱300"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem1Title" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddItem1"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_marginTop="12dp"
+                                android:backgroundTint="@color/bg_input"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="Add"
+                                android:textAllCaps="false"
+                                android:textColor="@color/accent_gold"
+                                android:textStyle="bold"
+                                app:cornerRadius="10dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem1Price"
+                                app:layout_constraintVertical_bias="1.0"
+                                app:strokeWidth="0dp" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Item 2 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardItem2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="@color/bg_card"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="14dp">
+
+                            <TextView
+                                android:id="@+id/tvItem2Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="Pickleball · Nighttime (1hr)"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/tvItem2Price"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="₱600"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem2Title" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddItem2"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_marginTop="12dp"
+                                android:backgroundTint="@color/bg_input"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="Add"
+                                android:textAllCaps="false"
+                                android:textColor="@color/accent_gold"
+                                android:textStyle="bold"
+                                app:cornerRadius="10dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem2Price"
+                                app:layout_constraintVertical_bias="1.0"
+                                app:strokeWidth="0dp" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+
+                <!-- Row 2: Item 3 & Item 4 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <!-- Item 3 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardItem3"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginEnd="5dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="@color/bg_card"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="14dp">
+
+                            <TextView
+                                android:id="@+id/tvItem3Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="Paddle rental (1hr)"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/tvItem3Price"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="₱50"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem3Title" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddItem3"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_marginTop="12dp"
+                                android:backgroundTint="@color/bg_input"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="Add"
+                                android:textAllCaps="false"
+                                android:textColor="@color/accent_gold"
+                                android:textStyle="bold"
+                                app:cornerRadius="10dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem3Price"
+                                app:layout_constraintVertical_bias="1.0"
+                                app:strokeWidth="0dp" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <!-- Item 4 -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardItem4"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:layout_weight="1"
+                        app:cardBackgroundColor="@color/bg_card"
+                        app:cardCornerRadius="16dp"
+                        app:cardElevation="2dp"
+                        app:strokeWidth="0dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:padding="14dp">
+
+                            <TextView
+                                android:id="@+id/tvItem4Title"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:text="Bottled water"
+                                android:textColor="@color/text_primary"
+                                android:textSize="12sp"
+                                android:textStyle="bold"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toTopOf="parent" />
+
+                            <TextView
+                                android:id="@+id/tvItem4Price"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="₱35"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem4Title" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAddItem4"
+                                android:layout_width="0dp"
+                                android:layout_height="36dp"
+                                android:layout_marginTop="12dp"
+                                android:backgroundTint="@color/bg_input"
+                                android:insetTop="0dp"
+                                android:insetBottom="0dp"
+                                android:text="Add"
+                                android:textAllCaps="false"
+                                android:textColor="@color/accent_gold"
+                                android:textStyle="bold"
+                                app:cornerRadius="10dp"
+                                app:layout_constraintBottom_toBottomOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintTop_toBottomOf="@id/tvItem4Price"
+                                app:layout_constraintVertical_bias="1.0"
+                                app:strokeWidth="0dp" />
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Order Summary Section Header -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="Current order"
+                    android:textColor="@color/text_primary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvClearOrder"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:padding="4dp"
+                    android:text="Clear All"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- Order Summary Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="20dp"
+                app:cardBackgroundColor="@color/bg_card"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Dynamic Container for Order Items -->
+                    <LinearLayout
+                        android:id="@+id/containerOrderItems"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical" />
+
+                    <!-- Separator Line -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginVertical="14dp"
+                        android:background="@color/bg_input" />
+
+                    <!-- Total Row -->
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:text="Total"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="14sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvPosTotal"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:text="₱0.00"
+                            android:textColor="@color/accent_gold"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+                    </RelativeLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Fixed Bottom Charge Button -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnChargePos"
+        android:layout_width="match_parent"
+        android:layout_height="52dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="16dp"
+        android:backgroundTint="@color/accent_gold"
+        android:elevation="4dp"
+        android:insetTop="0dp"
+        android:insetBottom="0dp"
+        android:text="CHARGE-CASHLESS: ₱0.00"
+        android:textAllCaps="false"
+        android:textColor="@color/bg_main"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        app:cornerRadius="26dp"
+        app:strokeWidth="0dp" />
+
+</RelativeLayout>

@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/resort_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="18dp">
+
+        <!-- HEADER SECTION -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.25"
+                    android:text="CASAVISTA"
+                    android:textColor="@color/court_dark_brown"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.38"
+                    android:text="RESORT"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvHomeGreeting"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="KUMUSTA, DIVIN!"
+                    android:textColor="@color/court_dark_brown"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- AVATAR STACK -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardCourtAvatar"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardCornerRadius="22dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1.5dp"
+                app:strokeColor="@color/summary_bar_gold">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/tvHomeAvatarInitials"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/court_dark_brown"
+                        android:gravity="center"
+                        android:text="J"
+                        android:textColor="#FFFFFF"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/imgHomeAvatar"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone"
+                        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Full" />
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </RelativeLayout>
+
+        <!-- SPORT TOGGLE CONTAINER -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#E2D7C7"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="0dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSportPickleball"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Pickleball"
+                    android:textAllCaps="true"
+                    android:textColor="#FFFFFF"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#4D391A"
+                    app:cornerRadius="8dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnSportBasketball"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:text="Basketball"
+                    android:textAllCaps="true"
+                    android:textColor="#6B5B4B"
+                    android:textSize="14sp"
+                    app:backgroundTint="#F8F5F0"
+                    app:cornerRadius="8dp" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- CALENDAR CONTAINER CARD -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#FAF6EE"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#D3C7B5"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- CALENDAR MONTH NAVIGATION -->
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                    <TextView
+                        android:id="@+id/btnPrevMonth"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_centerVertical="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="‹"
+                        android:textColor="#4D391A"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvCalendarMonthYear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="August 2026"
+                        android:textColor="#302B24"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/btnNextMonth"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:gravity="center"
+                        android:text="›"
+                        android:textColor="#4D391A"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+                </RelativeLayout>
+
+                <!-- DAY OF WEEK HEADER BAR -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:paddingVertical="6dp">
+
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="M" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="W" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="T" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="F" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="S" android:textColor="#59493B" android:textSize="12sp" android:textStyle="bold" />
+                </LinearLayout>
+
+                <!-- CALENDAR GRID -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvCalendarGrid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:nestedScrollingEnabled="false" />
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- COURT SELECTION SECTION -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Select Court"
+            android:textColor="@color/court_dark_brown"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCourt1"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="Court 1"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:backgroundTint="#4D391A"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCourt2"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_marginEnd="4dp"
+                android:layout_weight="1"
+                android:text="Court 2"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCourt3"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:text="Court 3"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+        </LinearLayout>
+
+        <!-- TIME SLOTS SECTION -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:text="Select Time Slot"
+                android:textColor="@color/court_dark_brown"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true"
+                android:text="☀️ 06:00-18:00 Day | 🌙 18:00-22:00 Night"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp" />
+        </RelativeLayout>
+
+        <GridLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:columnCount="3"
+            android:rowCount="4">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot1"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="6-7 AM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot2"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="8-9 AM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot3"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="10-11 AM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot4"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="12-1 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot5"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="2-3 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot6"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="3-4 PM"
+                android:textAllCaps="false"
+                android:textColor="#FFFFFF"
+                android:textStyle="bold"
+                app:backgroundTint="#4D391A"
+                app:cornerRadius="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot7"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="4-5 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot8"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="5-6 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot9"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="6-7 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot10"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="7-8 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot11"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="8-9 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSlot12"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="44dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="3dp"
+                android:text="9-10 PM"
+                android:textAllCaps="false"
+                android:textColor="#59493B"
+                android:textStyle="bold"
+                app:backgroundTint="#EADFD3"
+                app:cornerRadius="8dp"
+                app:strokeColor="#D5C8B6"
+                app:strokeWidth="1dp" />
+        </GridLayout>
+
+        <!-- PADDLE RENTAL SECTION (PICKLEBALL ONLY) -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardPaddleRental"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardBackgroundColor="#FAF6EE"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="1dp"
+            app:strokeColor="#D3C7B5"
+            app:strokeWidth="1dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="12dp">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Paddle Rentals"
+                        android:textColor="@color/court_dark_brown"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="₱100.00 / paddle per session"
+                        android:textColor="@color/text_muted"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnMinusPaddle"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:text="-"
+                        android:textColor="@color/court_dark_brown"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="#D3C7B5" />
+
+                    <TextView
+                        android:id="@+id/tvPaddleCount"
+                        android:layout_width="32dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="0"
+                        android:textColor="@color/court_dark_brown"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPlusPaddle"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:insetLeft="0dp"
+                        android:insetTop="0dp"
+                        android:insetRight="0dp"
+                        android:insetBottom="0dp"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
+                        android:text="+"
+                        android:textColor="@color/court_dark_brown"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="18dp"
+                        app:strokeColor="#D3C7B5" />
+                </LinearLayout>
+
+            </RelativeLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- BOOKING SUMMARY BOX -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:layout_marginBottom="16dp"
+            app:cardBackgroundColor="#E6DACB"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeColor="#CFC0AD"
+            app:strokeWidth="1dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Outdoor Hard Court • Outdoor Lighting"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvSummaryLine"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="1 hour • Court 1 • Thu, Aug 20 2026"
+                    android:textColor="#665545"
+                    android:textSize="13sp" />
+
+                <TextView
+                    android:id="@+id/tvSummaryPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="₱350"
+                    android:textColor="#4D391A"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnConfirmCourtPay"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="12dp"
+                    android:text="Confirm &amp; Pay"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#4D391A"
+                    app:cornerRadius="10dp" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

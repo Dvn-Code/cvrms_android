@@ -1,0 +1,372 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/resort_bg">
+
+    <!-- BACKGROUND RESORT VIDEO (TEXTUREVIEW FOR FULLSCREEN SCALING) -->
+    <TextureView
+        android:id="@+id/videoBgLogin"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_gravity="center" />
+
+    <!-- DARK OVERLAY FOR TEXT CONTRAST & READABILITY -->
+    <View
+        android:id="@+id/videoOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000" />
+
+    <!-- MAIN SCROLLABLE LOGIN CONTENT -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scrollLoginContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:overScrollMode="never">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="20dp">
+
+            <!-- TOP CENTERED LOGO & BRANDING -->
+            <LinearLayout
+                android:id="@+id/layoutHeroBrand"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="60dp"
+                android:gravity="center"
+                android:orientation="vertical"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ImageView
+                    android:id="@+id/ivArtwork"
+                    android:layout_width="130dp"
+                    android:layout_height="90dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_casavista_artwork" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:letterSpacing="0.25"
+                    android:text="CASAVISTA"
+                    android:textColor="#FFFFFF"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.38"
+                    android:text="RESORT"
+                    android:textColor="#E2B743"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- LOGIN CARD -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/bottomCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="@color/card_bg"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="2dp"
+                app:strokeColor="@color/border_soft"
+                app:strokeWidth="1dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutHeroBrand"
+                app:layout_constraintVertical_bias="1.0">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical"
+                    android:paddingHorizontal="24dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="32dp">
+
+                    <!-- TOP CENTER ARROW DRAG HANDLE -->
+                    <LinearLayout
+                        android:id="@+id/layoutTopDragHandle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:paddingVertical="8dp"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <ImageView
+                            android:id="@+id/btnTopHandleArrow"
+                            android:layout_width="32dp"
+                            android:layout_height="22dp"
+                            android:contentDescription="Swipe down to dismiss form"
+                            android:src="@drawable/ic_chevron_down" />
+                    </LinearLayout>
+
+                    <!-- CARD HEADER -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Welcome Back!"
+                        android:textColor="@color/welcome_gold"
+                        android:textSize="22sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="Please sign in to continue"
+                        android:textColor="@color/text_muted"
+                        android:textSize="12sp" />
+
+                    <!-- FLOATING EMAIL FIELD -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilEmail"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:hint="Email Address"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxStrokeColor="@color/label_tan"
+                        app:hintTextColor="@color/label_tan"
+                        app:startIconDrawable="@android:drawable/ic_dialog_email"
+                        app:startIconTint="@color/label_tan">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etEmail"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textEmailAddress"
+                            android:textColor="@color/primary_dark"
+                            android:textSize="14sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- FLOATING PASSWORD FIELD -->
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/tilPassword"
+                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:hint="Password"
+                        app:boxCornerRadiusBottomEnd="12dp"
+                        app:boxCornerRadiusBottomStart="12dp"
+                        app:boxCornerRadiusTopEnd="12dp"
+                        app:boxCornerRadiusTopStart="12dp"
+                        app:boxStrokeColor="@color/label_tan"
+                        app:endIconMode="password_toggle"
+                        app:endIconTint="@color/label_tan"
+                        app:hintTextColor="@color/label_tan"
+                        app:startIconDrawable="@android:drawable/ic_lock_idle_lock"
+                        app:startIconTint="@color/label_tan">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/etPassword"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:inputType="textPassword"
+                            android:textColor="@color/primary_dark"
+                            android:textSize="14sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <!-- FORGOT PASSWORD -->
+                    <TextView
+                        android:id="@+id/tvForgotPassword"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="end"
+                        android:layout_marginTop="8dp"
+                        android:text="Forgot Password?"
+                        android:textColor="@color/label_tan"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+
+                    <!-- LOG IN BUTTON -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnLogin"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="14dp"
+                        android:backgroundTint="@color/btn_login_gold"
+                        android:text="Log In"
+                        android:textAllCaps="false"
+                        android:textColor="@color/btn_login_text"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="24dp"
+                        app:elevation="0dp" />
+
+                    <!-- CREATE ACCOUNT BUTTON -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnGoToSignUp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:layout_marginTop="8dp"
+                        android:text="Create New Account"
+                        android:textAllCaps="false"
+                        android:textColor="@color/welcome_gold"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="24dp"
+                        app:elevation="0dp"
+                        app:strokeColor="@color/btn_login_gold"
+                        app:strokeWidth="1.5dp" />
+
+                    <!-- DIVIDER -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginVertical="14dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1"
+                            android:background="@color/divider_line" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingHorizontal="12dp"
+                            android:text="or continue with"
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="1dp"
+                            android:layout_weight="1"
+                            android:background="@color/divider_line" />
+                    </LinearLayout>
+
+                    <!-- SOCIAL LOGINS -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:layout_marginBottom="8dp"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/btnGoogle"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="16dp"
+                            app:cardBackgroundColor="@color/social_btn_bg"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="1dp"
+                            app:strokeColor="@color/border_soft"
+                            app:strokeWidth="1dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_google_logo" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/btnApple"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            android:layout_marginEnd="16dp"
+                            app:cardBackgroundColor="@color/social_btn_bg"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="1dp"
+                            app:strokeColor="@color/border_soft"
+                            app:strokeWidth="1dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_apple_logo" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/btnFacebook"
+                            android:layout_width="48dp"
+                            android:layout_height="48dp"
+                            app:cardBackgroundColor="@color/social_btn_bg"
+                            app:cardCornerRadius="24dp"
+                            app:cardElevation="1dp"
+                            app:strokeColor="@color/border_soft"
+                            app:strokeWidth="1dp">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_gravity="center"
+                                android:src="@drawable/ic_facebook_logo" />
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- HOVERING EXPAND BUTTON (SHOWN AT BOTTOM WHEN FORM IS CLOSED) -->
+    <LinearLayout
+        android:id="@+id/btnHoveringExpand"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="28dp"
+        android:background="@drawable/bg_pill_gold"
+        android:backgroundTint="#D91C1814"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="10dp"
+        android:visibility="gone"
+        app:elevation="4dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_chevron_up" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Sign In"
+            android:textColor="#E2B743"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</FrameLayout>

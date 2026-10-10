@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_main"
+    tools:context=".superadmin.SuperAdminMainActivity">
+
+    <!-- Container where Super Admin Fragments (Home, Rooms, History, Profile) are loaded -->
+    <FrameLayout
+        android:id="@+id/superAdminFragmentContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/superAdminNavView"
+        tools:layout="@layout/fragment_super_admin_dashboard" />
+
+    <!-- Super Admin Bottom Navigation Bar -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/superAdminNavView"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/bg_card"
+        app:itemIconTint="@color/nav_item_color"
+        app:itemTextColor="@color/nav_item_color"
+        app:menu="@menu/super_admin_bottom_nav" />
+
+</RelativeLayout>

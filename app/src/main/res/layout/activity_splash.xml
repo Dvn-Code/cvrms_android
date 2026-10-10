@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/resort_bg">
+
+    <!-- Centered Brand Container -->
+    <LinearLayout
+        android:id="@+id/brandContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toTopOf="@id/pbSplashLoading"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed">
+
+        <!-- Logo Artwork -->
+        <ImageView
+            android:id="@+id/ivSplashLogo"
+            android:layout_width="200dp"
+            android:layout_height="160dp"
+            android:contentDescription="CasaVista Logo"
+            android:src="@drawable/ic_casavista_artwork" />
+
+        <!-- Brand Name -->
+        <TextView
+            android:id="@+id/tvSplashTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:letterSpacing="0.22"
+            android:text="CASAVISTA"
+            android:textColor="@color/primary_dark"
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
+        <!-- Subtitle -->
+        <TextView
+            android:id="@+id/tvSplashSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:letterSpacing="0.32"
+            android:text="RESORT"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+
+    </LinearLayout>
+
+    <!-- Subtle Bottom Loading Bar -->
+    <ProgressBar
+        android:id="@+id/pbSplashLoading"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="120dp"
+        android:layout_height="12dp"
+        android:layout_marginBottom="48dp"
+        android:indeterminate="true"
+        android:indeterminateTint="@color/primary_dark"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,39 @@
+<resources>
+    <!-- User Theme -->
+    <style name="Theme.CasaVista" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="colorPrimary">@color/button_bg</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">#FFFFFF</item>
+        <item name="android:windowBackground">@color/bg_primary</item>
+        <item name="android:statusBarColor">@color/resort_bg</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="materialButtonStyle">@style/Widget.MaterialComponents.Button.UnelevatedButton</item>
+        <item name="materialAlertDialogTheme">@style/MaterialAlertDialogTheme</item>
+        <item name="alertDialogTheme">@style/MaterialAlertDialogTheme</item>
+    </style>
+
+    <!-- Admin Theme -->
+    <style name="Theme.CasaVistaAdmin" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/accent_gold</item>
+        <item name="android:statusBarColor">@color/bg_main</item>
+        <item name="materialButtonStyle">@style/Widget.Material3.Button.UnelevatedButton</item>
+        <item name="materialAlertDialogTheme">@style/MaterialAlertDialogTheme</item>
+        <item name="alertDialogTheme">@style/MaterialAlertDialogTheme</item>
+    </style>
+
+    <!-- ShapeableImageView Overlay Style -->
+    <style name="CircleImageView">
+        <item name="cornerSize">50%</item>
+    </style>
+
+    <!-- Custom Dialog Theme for Perfect Dark & Light Contrast -->
+    <style name="MaterialAlertDialogTheme" parent="ThemeOverlay.MaterialComponents.MaterialAlertDialog">
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.Material3.Corner.Medium</item>
+        <item name="colorSurface">@color/card_bg</item>
+        <item name="android:background">@color/card_bg</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="colorPrimary">@color/accent_gold</item>
+        <item name="colorAccent">@color/accent_gold</item>
+    </style>
+
+</resources>

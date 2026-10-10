@@ -1,0 +1,30 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <!-- Outer Circular Seal Ring -->
+    <path
+        android:fillColor="#1B365D"
+        android:pathData="M24,2 A22,22 0 1,0 24,46 A22,22 0 1,0 24,2 Z M24,5 A19,19 0 1,1 24,43 A19,19 0 1,1 24,5 Z"/>
+    <!-- Inner Gold Ring -->
+    <path
+        android:fillColor="#C59B27"
+        android:pathData="M24,6 A18,18 0 1,0 24,42 A18,18 0 1,0 24,6 Z M24,8 A16,16 0 1,1 24,40 A16,16 0 1,1 24,8 Z"/>
+    <!-- Shield Container -->
+    <path
+        android:fillColor="#1B365D"
+        android:pathData="M24,10 L35,15 V25 C35,32 30,37 24,40 C18,37 13,32 13,25 V15 L24,10 Z"/>
+    <!-- Inner Shield Gold Accent -->
+    <path
+        android:fillColor="#C59B27"
+        android:pathData="M24,13 L32,17 V24 C32,29.5 28.5,33.5 24,36 C19.5,33.5 16,29.5 16,24 V17 L24,13 Z"/>
+    <!-- Padlock Body in Shield -->
+    <path
+        android:fillColor="#1B365D"
+        android:pathData="M20,24 H28 V30 H20 Z M22,24 V22 A2,2 0 0,1 26,22 V24 Z"/>
+    <!-- Keyhole -->
+    <path
+        android:fillColor="#C59B27"
+        android:pathData="M24,26 A1,1 0 1,0 24,28 V29 H24 Z"/>
+</vector>

@@ -1,0 +1,36 @@
+# Gradle files
+.gradle/
+build/
+app/build/
+**/build/
+
+# Local configuration files
+local.properties
+app/local.properties
+secrets.properties
+.env
+.env.local
+
+# IDE files
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+*.iws
+*.ipr
+.navigation/
+
+# Keystores & Compiled Artifacts
+*.apk
+*.aab
+*.jks
+*.keystore
+*.pepk
+
+# Log files
+*.log
+
+# Captures and profiling
+captures/
+.externalNativeBuild/
+.cxx/

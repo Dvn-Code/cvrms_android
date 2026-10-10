@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="160dp"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="18dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/border_soft"
+    app:strokeWidth="1dp">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- FULL CARD BACKGROUND PHOTO -->
+        <ImageView
+            android:id="@+id/imgBookingThumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/resort_icon_img" />
+
+        <!-- DARK GRADIENT OVERLAY FOR TEXT READABILITY -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_card_gradient_overlay" />
+
+        <!-- CARD INNER CONTENT LAYER WITH SPACIOUS PADDING -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="16dp">
+
+            <!-- TOP ROW: TITLE & STATUS BADGE -->
+            <RelativeLayout
+                android:id="@+id/layoutTopHeader"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentTop="true">
+
+                <TextView
+                    android:id="@+id/tvBookingTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="12dp"
+                    android:layout_toStartOf="@id/tvBookingStatus"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="Villa Suite 101"
+                    android:textColor="#FFFFFF"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvBookingStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/bg_pill_gold"
+                    android:paddingHorizontal="10dp"
+                    android:paddingVertical="4dp"
+                    android:text="Confirmed"
+                    android:textColor="#2A1810"
+                    android:textSize="10sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
+
+            <!-- MIDDLE ROW: DATE & DETAILS -->
+            <LinearLayout
+                android:id="@+id/layoutMidDetails"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/layoutTopHeader"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvBookingDate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Mon, Sep 28, 2026"
+                    android:textColor="#FEF08A"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvBookingDetail1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="SLOT: 3-4 PM • PAYMENT: GCash"
+                    android:textColor="#E7E5E4"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/tvBookingDetail2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="1dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:text="EQUIPMENT: Included"
+                    android:textColor="#D6D3D1"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <!-- BOTTOM ROW: PRICE & CANCEL BUTTON -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignParentBottom="true">
+
+                <TextView
+                    android:id="@+id/tvBookingPrice"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:text="₱4,500"
+                    android:textColor="#FFD700"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/layoutCancelAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnPayMaya"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="6dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingHorizontal="10dp"
+                        android:text="Pay with Maya (Test)"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        android:visibility="gone"
+                        app:backgroundTint="#009E49"
+                        app:cornerRadius="16dp"
+                        app:elevation="0dp" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCancelBooking"
+                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="32dp"
+                        android:insetTop="0dp"
+                        android:insetBottom="0dp"
+                        android:paddingHorizontal="10dp"
+                        android:text="Cancel"
+                        android:textAllCaps="false"
+                        android:textColor="#FFFFFF"
+                        android:textSize="10sp"
+                        android:textStyle="bold"
+                        app:backgroundTint="#88000000"
+                        app:cornerRadius="16dp"
+                        app:elevation="0dp"
+                        app:strokeColor="#88FFFFFF"
+                        app:strokeWidth="1dp" />
+                </LinearLayout>
+            </RelativeLayout>
+
+        </RelativeLayout>
+    </FrameLayout>
+</com.google.android.material.card.MaterialCardView>
