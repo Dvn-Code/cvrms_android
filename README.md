@@ -39,8 +39,8 @@ A native Android client application for the **Casa Vista Resort Management Syste
 - **Target SDK**: API 34 (Android 14)
 - **Java Version**: JDK 17
 - **Backend & Services**:
-  - FastAPI / Vercel Serverless Backend (`https://cvrms-api.vercel.app`)
-  - Supabase Database & Auth (`https://knobgbjusbcqaatizjld.supabase.co`)
+  - FastAPI / Vercel Serverless Backend (`https://your-api-url.vercel.app`)
+  - Supabase Database & Auth (`https://your-supabase-project.supabase.co`)
   - Google Play Services Auth (`play-services-auth:21.2.0`)
 
 ---
