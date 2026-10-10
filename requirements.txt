@@ -1,0 +1,18 @@
+# Casa Vista Resort Management System (CVRMS) - Dependencies
+# Python / FastAPI Backend Dependencies (Vercel Serverless API)
+
+fastapi>=0.109.0
+uvicorn>=0.27.0
+pydantic>=2.6.0
+supabase>=2.3.0
+python-dotenv>=1.0.0
+requests>=2.31.0
+httpx>=0.26.0
+
+# Note for Android Client Development:
+# Android build dependencies are managed automatically via Gradle in `app/build.gradle`.
+# Minimum requirements for Android:
+# - Android Studio Hedgehog (2023.1.1) or newer
+# - JDK 17 (Java Development Kit)
+# - Android SDK Platform 34 (Android 14)
+# - Android Gradle Plugin 8.2.2

@@ -1,4 +1,4 @@
-# Casa Vista Resort Management System (CVRMS) - Android Application
+# Casa Vista Resort Management System (CVRMS) - Android Client Application
 
 ![Android Version](https://img.shields.io/badge/Android-14%20%28API%2034%29-brightgreen)
 ![Min SDK](https://img.shields.io/badge/Min%20SDK-24-blue)
@@ -9,7 +9,26 @@ A native Android client application for the **Casa Vista Resort Management Syste
 
 ---
 
-## 🌟 Key Features
+## 👥 Group Members & Project Team
+
+- **Lead Developer**: Dvn-Code
+- **Project Role**: Casa Vista Resort Management System Team
+
+---
+
+## 📂 Repository Structure
+
+| Component | Path / Location | Description |
+| :--- | :--- | :--- |
+| **README** | `/README.md` | System overview, group members, requirements, and step-by-step setup instructions |
+| **Source code** | `/app` | Android application client source code (Activities, Fragments, Models, and Network API connection) |
+| **Database script** | `/database/booknest.sql` (and `/database/schema.sql`) | `CREATE TABLE` statements and sample records for PostgreSQL / Supabase |
+| **Environment sample** | `/.env.example` & `/local.properties.example` | Required environment variables with placeholder values |
+| **Dependencies** | `/requirements.txt` | Packages and tools needed to run the backend API and Android client |
+
+---
+
+## 📋 System Overview & Key Features
 
 ### 🏨 Guest / Customer Features
 - **Account & Authentication**: Email verification, Google Sign-In integration, and profile management.
@@ -31,21 +50,42 @@ A native Android client application for the **Casa Vista Resort Management Syste
 
 ---
 
-## 🚀 Tech Stack & Prerequisites
+## 💻 Requirements & Prerequisites Needed
 
-- **Language**: Java / Kotlin
-- **Build System**: Gradle 8.2+
-- **Min SDK**: API 24 (Android 7.0 Nougat)
-- **Target SDK**: API 34 (Android 14)
-- **Java Version**: JDK 17
-- **Backend & Services**:
-  - FastAPI / Vercel Serverless Backend (`https://your-api-url.vercel.app`)
-  - Supabase Database & Auth (`https://your-supabase-project.supabase.co`)
-  - Google Play Services Auth (`play-services-auth:21.2.0`)
+### Android Development Requirements
+- **IDE**: Android Studio Hedgehog (2023.1.1) or newer
+- **Java Development Kit**: JDK 17
+- **Android SDK**: Platform 34 (Android 14.0) with Build-Tools 34.0.0
+- **Device / Emulator**: Android 7.0 (API Level 24) or higher
+
+### Backend & Database Requirements
+- **Database Engine**: PostgreSQL or Supabase SQL Engine
+- **Backend API Runtime**: Python 3.10+ (for FastAPI server) or Node.js
+- **Key Dependencies**: Listed in `/requirements.txt`
 
 ---
 
-## 🛠️ Getting Started & Local Setup
+## 🗄️ Database Setup Instructions
+
+To set up the database schema and insert sample test records:
+
+1. Open your PostgreSQL database or [Supabase SQL Editor](https://supabase.com).
+2. Open the database script file located at:
+   ```
+   /database/booknest.sql  (or /database/schema.sql)
+   ```
+3. Execute the SQL script. This will create the required tables:
+   - `users`
+   - `catalog_items`
+   - `bookings`
+   - `announcements`
+   - `employees`
+   - `history_logs`
+4. The script automatically inserts pre-populated sample records (sample users, resort facilities, active bookings, announcements, and employees) so you can test all features immediately.
+
+---
+
+## 🛠️ Step-by-Step Setup & Run Instructions
 
 ### 1. Clone the Repository
 ```bash
@@ -65,17 +105,17 @@ cd cvrms_android
    ```
 
 ### 3. Open in Android Studio
-1. Launch **Android Studio** (Hedgehog 2023.1.1 or newer recommended).
-2. Select **Open** and navigate to the cloned project folder.
-3. Allow Gradle to synchronize dependencies.
+1. Launch **Android Studio**.
+2. Select **Open** and navigate to the cloned project root directory.
+3. Allow Gradle to synchronize dependencies automatically.
 
 ### 4. Build and Run
-- Connect an Android device or launch an Emulator running API 24+.
-- Click **Run 'app'** (`Shift + F10`).
+1. Connect an Android device via USB debugging or launch an Android Virtual Device (Emulator API 24+).
+2. Click **Run 'app'** (`Shift + F10` or click the green **Play** button in Android Studio).
 
 ---
 
-## 📁 Project Architecture
+## 📁 Source Code Structure
 
 ```
 app/src/main/
@@ -108,4 +148,4 @@ Access is temporarily granted strictly for academic coursework evaluation purpos
 
 ## 🤝 Contributing & Support
 
-Maintained by the **Casa Vista Resort Management System team**. For issues or feature requests, feel free to open an issue or submit a pull request on the [GitHub repository](https://github.com/Dvn-Code/cvrms_android).
+Maintained by the **Casa Vista Resort Management System team**. For questions or submission evaluations, contact the repository administrator.
