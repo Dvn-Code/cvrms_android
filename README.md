@@ -3,7 +3,7 @@
 ![Android Version](https://img.shields.io/badge/Android-14%20%28API%2034%29-brightgreen)
 ![Min SDK](https://img.shields.io/badge/Min%20SDK-24-blue)
 ![Language](https://img.shields.io/badge/Language-Java%20%2F%20Kotlin-orange)
-![License](https://img.shields.io/badge/License-MIT-green)
+![License](https://img.shields.io/badge/License-Proprietary%20%2F%20Confidential-red)
 
 A native Android client application for the **Casa Vista Resort Management System (CVRMS)**. The app provides seamless management and reservation workflows for resort guests, administrative staff, and super administrators.
 
@@ -98,9 +98,11 @@ app/src/main/
 
 ---
 
-## 📜 License
+## 📜 License & Intellectual Property
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This software is **Proprietary and Confidential**. All Rights Reserved.
+
+Access is temporarily granted strictly for academic coursework evaluation purposes. Unauthorized copying, distribution, modification, reverse engineering, or illegal exploitation of this codebase is strictly prohibited and subject to civil remedies and criminal prosecution. See the [LICENSE](LICENSE) file for full details.
 
 ---
 
