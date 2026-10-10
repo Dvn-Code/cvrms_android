@@ -22,7 +22,7 @@ A native Android client application for the **Casa Vista Resort Management Syste
 | :--- | :--- | :--- |
 | **README** | `/README.md` | System overview, group members, requirements, and step-by-step setup instructions |
 | **Source code** | `/app` | Android application client source code (Activities, Fragments, Models, and Network API connection) |
-| **Database script** | `/database/booknest.sql` (and `/database/schema.sql`) | `CREATE TABLE` statements and sample records for PostgreSQL / Supabase |
+| **Database script** | `/database/casavista.sql` (or `/database/schema.sql`) | `CREATE TABLE` statements and sample records for PostgreSQL / Supabase |
 | **Environment sample** | `/.env.example` & `/local.properties.example` | Required environment variables with placeholder values |
 | **Dependencies** | `/requirements.txt` | Packages and tools needed to run the backend API and Android client |
 
@@ -72,7 +72,7 @@ To set up the database schema and insert sample test records:
 1. Open your PostgreSQL database or [Supabase SQL Editor](https://supabase.com).
 2. Open the database script file located at:
    ```
-   /database/booknest.sql  (or /database/schema.sql)
+   /database/casavista.sql  (or /database/schema.sql)
    ```
 3. Execute the SQL script. This will create the required tables:
    - `users`
