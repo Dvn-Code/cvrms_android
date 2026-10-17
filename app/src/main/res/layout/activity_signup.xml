@@ -482,25 +482,36 @@
                         android:id="@+id/cbTerms"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:padding="0dp"
                         android:buttonTint="@color/court_dark_brown" />
 
-                    <TextView
-                        android:id="@+id/tvTermsLabel"
-                        android:layout_width="wrap_content"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="4dp"
-                        android:text="I agree to the "
-                        android:textColor="@color/primary_dark"
-                        android:textSize="13sp" />
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tvTermsLink"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Terms &amp; Conditions *"
-                        android:textColor="@color/summary_bar_gold"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/tvTermsLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="I agree to the "
+                            android:textColor="@color/primary_dark"
+                            android:textSize="13sp" />
+
+                        <TextView
+                            android:id="@+id/tvTermsLink"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Terms &amp; Conditions *"
+                            android:textColor="@color/summary_bar_gold"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
                 </LinearLayout>
 
                 <!-- Sign Up Button -->
@@ -520,17 +531,33 @@
                     app:elevation="0dp" />
 
                 <!-- Log In Link -->
-                <TextView
+                <LinearLayout
                     android:id="@+id/tvLogIn"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="16dp"
-                    android:padding="8dp"
-                    android:text="Already have an account? Log In"
-                    android:textColor="@color/summary_bar_gold"
-                    android:textSize="14sp"
-                    android:textStyle="bold" />
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Already have an account? "
+                        android:textColor="@color/primary_dark"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Log In"
+                        android:textColor="@color/court_dark_brown"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

@@ -61,7 +61,7 @@
             android:clickable="true"
             android:focusable="true"
             app:cardCornerRadius="22dp"
-            app:cardElevation="2dp"
+            app:cardElevation="0dp"
             app:strokeWidth="1.5dp"
             app:strokeColor="@color/summary_bar_gold">
 
@@ -120,7 +120,7 @@
                 android:textStyle="bold"
                 app:backgroundTint="@color/court_dark_brown"
                 app:cornerRadius="21dp"
-                app:elevation="2dp" />
+                app:elevation="0dp" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tabCatRooms"

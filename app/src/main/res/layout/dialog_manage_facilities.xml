@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/card_bg"
@@ -24,7 +25,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Change room &amp; court availability status"
+            android:text="Change room &amp; court availability and schedule maintenance dates"
             android:textColor="@color/admin_text_secondary"
             android:textSize="12sp" />
 
@@ -108,11 +109,125 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="4dp"
-                android:text="Unavailable (General)"
+                android:text="Unavailable (Blocked)"
                 android:textColor="@color/admin_text_primary"
                 android:textSize="13sp"
                 android:textStyle="bold" />
         </RadioGroup>
+
+        <!-- Maintenance / Block Date Range Container -->
+        <LinearLayout
+            android:id="@+id/layoutMaintenanceDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="MAINTENANCE / BLOCK DATE RANGE"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Customers cannot book this facility during these dates"
+                android:textColor="@color/admin_text_secondary"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMaintStartDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/bg_card_secondary"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_soft"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="START DATE"
+                            android:textColor="@color/admin_text_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvMaintStartDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:textColor="@color/admin_text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            tools:text="2026-10-15" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardMaintEndDate"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:cardBackgroundColor="@color/bg_card_secondary"
+                    app:cardCornerRadius="10dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/border_soft"
+                    app:strokeWidth="1dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="10dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="END DATE"
+                            android:textColor="@color/admin_text_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvMaintEndDate"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:textColor="@color/admin_text_primary"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            tools:text="2026-10-16" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

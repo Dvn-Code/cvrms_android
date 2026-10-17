@@ -30,7 +30,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="CasaVista Resort &amp; Spa"
+                android:text="CasaVista Resort"
                 android:textColor="@color/court_dark_brown"
                 android:textSize="17sp"
                 android:textStyle="bold" />
@@ -97,7 +97,7 @@
     <ScrollView
         android:id="@+id/svTerms"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
+        android:layout_height="220dp"
         android:fadeScrollbars="false"
         android:paddingEnd="4dp"
         android:scrollbars="vertical">
@@ -113,7 +113,7 @@
                 android:lineSpacingExtra="4dp"
                 android:textColor="@color/primary_dark"
                 android:textSize="12.5sp"
-                android:text="Welcome to CasaVista Resort &amp; Spa! By registering an account or making reservations through our digital application, you agree to comply with and be legally bound by the following Terms, Conditions, and Privacy Policies:\n\n1. ACCOUNT REGISTRATION &amp; AGE REQUIREMENT (18+ YEARS)\nIn compliance with Philippine laws and resort governance, account registration is strictly restricted to individuals who are at least eighteen (18) years of age (born on or before October 7, 2008). Guests must provide accurate, complete, and verifiable information. You are solely responsible for maintaining the confidentiality of your account credentials and for all activities conducted under your account.\n\n2. BOOKINGS, PAYMENTS &amp; CANCELLATION POLICY\nAll facility reservations (Rooms, Pickleball/Basketball Courts, Amenities) are subject to real-time availability and valid payment reference verification (GCash, Bank Transfer, Card, or Front Desk cash). Cancellations made at least 48 hours prior to check-in/schedule are eligible for rebooking or full refund. Repeated, excessive booking cancellations or ghost reservations are strictly prohibited and will trigger automatic account restriction or suspension.\n\n3. PHILIPPINE DATA PRIVACY ACT OF 2012 (R.A. 10173) &amp; DPA STATEMENT\nCasaVista Resort respects and upholds your fundamental right to privacy under Republic Act No. 10173, otherwise known as the Data Privacy Act of 2012 (DPA), supervised by the National Privacy Commission (NPC):\n • Data Collection Purpose: Personal data collected (Name, Gender, Birthdate, Contact Number, Email Address, Complete Home Address) is processed exclusively for account creation, identity verification, reservation management, guest safety, and emergency response.\n • Protection &amp; Confidentiality: Your personal data is protected using industry-standard security measures and encryption. We will never sell, lease, or distribute your personal details to third parties for commercial marketing.\n • Data Subject Rights: Under the DPA, you have the right to be informed, access, object to processing, rectify errors, or request erasure of your data from our guest registry upon written request to privacy@casavista.com.\n\n4. CYBERCRIME WARNING &amp; SYSTEM SECURITY (R.A. 10175)\nSTRICT NOTICE REGARDING SYSTEM INTEGRITY AND PENETRATION:\nAny unauthorized access, hacking, penetration testing, automated scraping, credential stuffing, SQL injection, API manipulation, software tampering, or malicious disruption targeting CasaVista systems constitutes a federal offense under Republic Act No. 10175 (Cybercrime Prevention Act of 2012).\nAll system activities, IP addresses, and device logs are continuously monitored and recorded. Any detected hacker activity, penetration attempt, or cyber security threat will be reported immediately to the National Bureau of Investigation (NBI) Cybercrime Division and the Philippine National Police Anti-Cybercrime Group (PNP-ACG) for criminal prosecution, imprisonment, and statutory fines under Philippine law.\n\n5. RESORT CODE OF CONDUCT &amp; PROPERTY LIABILITY\nGuests must observe resort quiet hours (10:00 PM – 6:00 AM) and maintain courteous behavior toward resort staff and fellow guests. Any damage, loss, or destruction of resort property, room fixtures, or sports equipment (paddles, balls, nets) will be billed directly to the registered guest.\n\n6. ACKNOWLEDGMENT &amp; LEGAL CONSENT\nBy scrolling to the very end of this document and clicking 'I Agree &amp; Accept', you legally affirm that you are at least 18 years of age, have thoroughly read and understood all the terms above, and consent to the collection and processing of your personal data under the PH Data Privacy Act of 2012." />
+                android:text="Welcome to CasaVista Resort! By registering an account or making reservations through our digital application, you agree to comply with and be legally bound by the following Terms, Conditions, and Privacy Policies:\n\n1. ACCOUNT REGISTRATION &amp; AGE REQUIREMENT (18+ YEARS)\nIn compliance with Philippine laws and resort governance, account registration is strictly restricted to individuals who are at least eighteen (18) years of age (born on or before October 7, 2008). Guests must provide accurate, complete, and verifiable information. You are solely responsible for maintaining the confidentiality of your account credentials and for all activities conducted under your account.\n\n2. BOOKINGS, PAYMENTS &amp; CANCELLATION POLICY\nAll facility reservations (Rooms, Pickleball/Basketball Courts, Amenities) are subject to real-time availability and valid payment reference verification (GCash, Bank Transfer, Card, or Front Desk cash). Cancellations made at least 48 hours prior to check-in/schedule are eligible for rebooking or full refund. Repeated, excessive booking cancellations or ghost reservations are strictly prohibited and will trigger automatic account restriction or suspension.\n\n3. PHILIPPINE DATA PRIVACY ACT OF 2012 (R.A. 10173) &amp; DPA STATEMENT\nCasaVista Resort respects and upholds your fundamental right to privacy under Republic Act No. 10173, otherwise known as the Data Privacy Act of 2012 (DPA), supervised by the National Privacy Commission (NPC):\n • Data Collection Purpose: Personal data collected (Name, Gender, Birthdate, Contact Number, Email Address, Complete Home Address) is processed exclusively for account creation, identity verification, reservation management, guest safety, and emergency response.\n • Protection &amp; Confidentiality: Your personal data is protected using industry-standard security measures and encryption. We will never sell, lease, or distribute your personal details to third parties for commercial marketing.\n • Data Subject Rights: Under the DPA, you have the right to be informed, access, object to processing, rectify errors, or request erasure of your data from our guest registry upon written request to privacy@casavista.com.\n\n4. CYBERCRIME WARNING &amp; SYSTEM SECURITY (R.A. 10175)\nSTRICT NOTICE REGARDING SYSTEM INTEGRITY AND PENETRATION:\nAny unauthorized access, hacking, penetration testing, automated scraping, credential stuffing, SQL injection, API manipulation, software tampering, or malicious disruption targeting CasaVista systems constitutes a federal offense under Republic Act No. 10175 (Cybercrime Prevention Act of 2012).\nAll system activities, IP addresses, and device logs are continuously monitored and recorded. Any detected hacker activity, penetration attempt, or cyber security threat will be reported immediately to the National Bureau of Investigation (NBI) Cybercrime Division and the Philippine National Police Anti-Cybercrime Group (PNP-ACG) for criminal prosecution, imprisonment, and statutory fines under Philippine law.\n\n5. RESORT CODE OF CONDUCT &amp; PROPERTY LIABILITY\nGuests must observe resort quiet hours (10:00 PM – 6:00 AM) and maintain courteous behavior toward resort staff and fellow guests. Any damage, loss, or destruction of resort property, room fixtures, or sports equipment (paddles, balls, nets) will be billed directly to the registered guest.\n\n6. ACKNOWLEDGMENT &amp; LEGAL CONSENT\nBy scrolling to the very end of this document and clicking 'I Agree &amp; Accept', you legally affirm that you are at least 18 years of age, have thoroughly read and understood all the terms above, and consent to the collection and processing of your personal data under the PH Data Privacy Act of 2012." />
 
             <View
                 android:layout_width="match_parent"
@@ -127,10 +127,12 @@
         android:id="@+id/tvScrollNotice"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginBottom="14dp"
         android:background="#FFF8EE"
         android:gravity="center"
-        android:padding="8dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="10dp"
         android:text="⚠️ Please scroll through the entire terms to enable agreement."
         android:textColor="#C59B27"
         android:textSize="12sp"
@@ -140,33 +142,40 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnCloseTerms"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="6dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="8dp"
             android:layout_weight="1"
+            android:paddingHorizontal="8dp"
             android:text="Close"
             android:textColor="@color/court_dark_brown"
-            app:cornerRadius="12dp"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:cornerRadius="14dp"
             app:strokeColor="@color/border_soft" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAgreeTerms"
             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
             android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="6dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="8dp"
             android:layout_weight="1"
             android:backgroundTint="@color/court_dark_brown"
-            android:enabled="false"
-            android:text="Agree"
+            android:enabled="true"
+            android:paddingHorizontal="8dp"
+            android:text="Agree &amp; Continue"
             android:textColor="#FFFFFF"
-            app:cornerRadius="12dp" />
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:cornerRadius="14dp" />
     </LinearLayout>
 
 </LinearLayout>

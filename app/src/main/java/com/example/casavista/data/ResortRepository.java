@@ -10,8 +10,14 @@ import com.example.casavista.models.CatalogItem;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ResortRepository {
 
@@ -23,6 +29,10 @@ public class ResortRepository {
     private static ResortRepository instance;
     private List<Booking> bookingsList;
     private List<CatalogItem> catalogItems;
+    private final Map<String, String> memoryStatusOverrides = new LinkedHashMap<>();
+    private final Map<String, String> memoryMaintStartDates = new LinkedHashMap<>();
+    private final Map<String, String> memoryMaintEndDates = new LinkedHashMap<>();
+
     private String currentUserName = "Alex Morgan";
     private String currentUserEmail = "alex.morgan@casavista.com";
 
@@ -117,19 +127,34 @@ public class ResortRepository {
 
     // --- BOOKING PERSISTENCE METHODS ---
 
-    public void saveBookings(Context context) {
+    public synchronized void saveBookings(Context context) {
         if (context == null) return;
         try {
             JSONArray array = new JSONArray();
+            List<String> seenIds = new ArrayList<>();
             for (Booking b : bookingsList) {
+                if (b == null) continue;
+                String bId = b.getBookingId() != null ? b.getBookingId().trim() : "";
+                if (!bId.isEmpty()) {
+                    if (seenIds.contains(bId.toUpperCase())) continue;
+                    seenIds.add(bId.toUpperCase());
+                }
+                if (b.getTitle() == null || b.getTitle().trim().isEmpty()) continue;
+
                 JSONObject obj = new JSONObject();
                 obj.put("title", b.getTitle());
                 obj.put("status", b.getStatus());
                 obj.put("date", b.getDate());
                 obj.put("detail1", b.getDetail1());
-                obj.put("bookingId", b.getBookingId() != null ? b.getBookingId() : "");
+                obj.put("bookingId", bId);
+                obj.put("customerId", b.getCustomerId() != null ? b.getCustomerId() : "");
+                obj.put("roomId", b.getRoomId() != null ? b.getRoomId() : "");
+                obj.put("courtId", b.getCourtId() != null ? b.getCourtId() : "");
+                obj.put("checkInDate", b.getCheckInDate() != null ? b.getCheckInDate() : "");
+                obj.put("checkOutDate", b.getCheckOutDate() != null ? b.getCheckOutDate() : "");
                 obj.put("detail2", b.getDetail2());
                 obj.put("price", b.getPrice());
+                obj.put("totalAmount", b.getTotalAmount());
                 obj.put("imagePath", b.getImagePath() != null ? b.getImagePath() : "");
                 obj.put("imageResId", b.getImageResId());
                 array.put(obj);
@@ -141,18 +166,25 @@ public class ResortRepository {
         }
     }
 
-    public void loadSavedBookings(Context context) {
+    public synchronized void loadSavedBookings(Context context) {
         if (context == null) return;
+        loadFacilityOverridesIntoMemory(context);
+        loadSavedImages(context);
         SharedPreferences prefs = context.getSharedPreferences(PREF_BOOKINGS, Context.MODE_PRIVATE);
         String jsonStr = prefs.getString(KEY_BOOKINGS_JSON, null);
         if (jsonStr != null && !jsonStr.isEmpty()) {
             try {
                 JSONArray array = new JSONArray(jsonStr);
-                List<Booking> loadedList = new ArrayList<>();
+                Map<String, Booking> uniqueMap = new LinkedHashMap<>();
+                int fallbackIdx = 0;
+
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject obj = array.getJSONObject(i);
+                    String title = obj.optString("title", "");
+                    if (title.trim().isEmpty()) continue;
+
                     Booking booking = new Booking(
-                            obj.optString("title"),
+                            title,
                             obj.optString("status"),
                             obj.optString("date"),
                             obj.optString("detail1"),
@@ -161,33 +193,101 @@ public class ResortRepository {
                             obj.optString("imagePath"),
                             obj.optInt("imageResId")
                     );
-                    booking.setBookingId(obj.optString("bookingId", ""));
-                    loadedList.add(booking);
+                    String bId = obj.optString("bookingId", "").trim();
+                    booking.setBookingId(bId);
+                    booking.setCustomerId(obj.optString("customerId", ""));
+                    booking.setRoomId(obj.optString("roomId", ""));
+                    booking.setCourtId(obj.optString("courtId", ""));
+                    booking.setCheckInDate(obj.optString("checkInDate", ""));
+                    booking.setCheckOutDate(obj.optString("checkOutDate", ""));
+                    booking.setTotalAmount(obj.optDouble("totalAmount", 0.0));
+
+                    syncBookingCatalogImage(booking);
+
+                    String key = !bId.isEmpty() ? bId.toUpperCase() : ("LOCAL_" + (fallbackIdx++));
+                    if (!uniqueMap.containsKey(key)) {
+                        uniqueMap.put(key, booking);
+                    }
                 }
-                this.bookingsList = loadedList;
+                this.bookingsList = new ArrayList<>(uniqueMap.values());
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
     }
 
-    public void clearBookings(Context context) {
-        this.bookingsList = new ArrayList<>();
-        if (context != null) {
-            SharedPreferences prefs = context.getSharedPreferences(PREF_BOOKINGS, Context.MODE_PRIVATE);
-            prefs.edit().remove(KEY_BOOKINGS_JSON).apply();
+    private void syncBookingCatalogImage(Booking booking) {
+        if (booking == null) return;
+        String normBookingKey = getNormalizedFacilityKey(
+                booking.getRoomId() != null && !booking.getRoomId().isEmpty()
+                        ? booking.getRoomId()
+                        : (booking.getCourtId() != null && !booking.getCourtId().isEmpty() ? booking.getCourtId() : booking.getTitle())
+        );
+        for (CatalogItem item : catalogItems) {
+            if (item == null || item.getTitle() == null) continue;
+            String normItemKey = getNormalizedFacilityKey(item.getTitle());
+            if (item.getTitle().equalsIgnoreCase(booking.getTitle())
+                    || (!normBookingKey.isEmpty() && normBookingKey.equalsIgnoreCase(normItemKey))) {
+                if ((booking.getImagePath() == null || booking.getImagePath().trim().isEmpty())
+                        && item.getImageUrl() != null && !item.getImageUrl().trim().isEmpty()) {
+                    booking.setImagePath(item.getImageUrl());
+                }
+                if (booking.getImageResId() == 0 || booking.getImageResId() == R.drawable.rooms_icon_img) {
+                    if (item.getImageResId() != 0) {
+                        booking.setImageResId(item.getImageResId());
+                    }
+                }
+                break;
+            }
         }
     }
 
-    public List<Booking> getBookings() { return bookingsList; }
+    private void loadFacilityOverridesIntoMemory(Context context) {
+        if (context == null) return;
+        SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
+        String[] keys = {"Room 1", "Room 2", "Room 3", "Court 1", "Court 2", "Court 3"};
+        for (String k : keys) {
+            String st = prefs.getString(k, null);
+            String sDate = prefs.getString(k + "_start", null);
+            String eDate = prefs.getString(k + "_end", null);
+            if (st != null) memoryStatusOverrides.put(k, st);
+            if (sDate != null) memoryMaintStartDates.put(k, sDate);
+            if (eDate != null) memoryMaintEndDates.put(k, eDate);
+        }
+    }
 
-    public List<Booking> getBookings(String type) {
+    public synchronized void clearBookings(Context context) {
+        // Keep active maintenance blocks when switching user accounts so maintenance still blocks user reservations
+        List<Booking> preservedMaintenance = new ArrayList<>();
+        for (Booking b : bookingsList) {
+            if (b != null && b.getBookingId() != null && b.getBookingId().startsWith("MAINT-")) {
+                preservedMaintenance.add(b);
+            }
+        }
+        this.bookingsList = preservedMaintenance;
+        if (context != null) {
+            saveBookings(context);
+        }
+    }
+
+    public synchronized List<Booking> getBookings() {
+        return getBookings("ALL");
+    }
+
+    public synchronized List<Booking> getBookings(String type) {
+        List<Booking> nonMaintenance = new ArrayList<>();
+        for (Booking b : bookingsList) {
+            if (b == null || b.getTitle() == null || b.getTitle().trim().isEmpty()) continue;
+            if (b.getBookingId() != null && b.getBookingId().startsWith("MAINT-")) continue;
+            nonMaintenance.add(b);
+        }
+
         if (type == null || type.isEmpty() || type.equalsIgnoreCase("ALL")) {
-            return bookingsList;
+            return nonMaintenance;
         }
 
         List<Booking> filtered = new ArrayList<>();
-        for (Booking booking : bookingsList) {
+        for (Booking booking : nonMaintenance) {
             String status = booking.getStatus() != null ? booking.getStatus() : "";
             if ("Cancelled".equalsIgnoreCase(type)) {
                 if ("Cancelled".equalsIgnoreCase(status) || "Declined".equalsIgnoreCase(status)) {
@@ -197,7 +297,7 @@ public class ResortRepository {
                 if ("Completed".equalsIgnoreCase(status) || "Past".equalsIgnoreCase(status)) {
                     filtered.add(booking);
                 }
-            } else { // "Upcoming" / "Pending" / Active bookings
+            } else {
                 if (!"Cancelled".equalsIgnoreCase(status) && !"Declined".equalsIgnoreCase(status) && !"Completed".equalsIgnoreCase(status)) {
                     filtered.add(booking);
                 }
@@ -206,62 +306,326 @@ public class ResortRepository {
         return filtered;
     }
 
-    // --- ADMIN FACILITY STATUS OVERRIDE METHODS ---
+    // --- ADMIN FACILITY STATUS & MAINTENANCE DATE RANGE OVERRIDE METHODS ---
 
     public void setFacilityStatusOverride(Context context, String facilityName, String status) {
-        if (context == null || facilityName == null) return;
-        SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(getNormalizedFacilityKey(facilityName), status);
-        editor.putString(facilityName.trim(), status);
-        editor.apply();
+        setFacilityStatusOverride(context, facilityName, status, null, null);
+    }
+
+    public void setFacilityStatusOverride(Context context, String facilityName, String status, String startDateIso, String endDateIso) {
+        if (facilityName == null) return;
+        String normKey = getNormalizedFacilityKey(facilityName);
+        memoryStatusOverrides.put(normKey, status);
+
+        if ("Available".equalsIgnoreCase(status) || "Open".equalsIgnoreCase(status) || "Ready".equalsIgnoreCase(status)) {
+            memoryMaintStartDates.remove(normKey);
+            memoryMaintEndDates.remove(normKey);
+            removeLocalMaintenanceBookingBlock(context, normKey);
+        } else if (startDateIso != null && endDateIso != null && !startDateIso.isEmpty() && !endDateIso.isEmpty()) {
+            memoryMaintStartDates.put(normKey, startDateIso);
+            memoryMaintEndDates.put(normKey, endDateIso);
+            upsertLocalMaintenanceBookingBlock(context, normKey, status, startDateIso, endDateIso);
+        }
+
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(normKey, status);
+            editor.putString(facilityName.trim(), status);
+            if ("Available".equalsIgnoreCase(status) || "Open".equalsIgnoreCase(status) || "Ready".equalsIgnoreCase(status)) {
+                editor.remove(normKey + "_start");
+                editor.remove(normKey + "_end");
+            } else if (startDateIso != null && endDateIso != null) {
+                editor.putString(normKey + "_start", startDateIso);
+                editor.putString(normKey + "_end", endDateIso);
+            }
+            editor.apply();
+        }
+    }
+
+    private void upsertLocalMaintenanceBookingBlock(Context context, String normFacilityKey, String status, String startIso, String endIso) {
+        String maintId = "MAINT-" + normFacilityKey.replaceAll("\\s+", "").toUpperCase();
+        String dbRoomId = "Room 1".equalsIgnoreCase(normFacilityKey) ? "RM-101"
+                : ("Room 2".equalsIgnoreCase(normFacilityKey) ? "RM-102"
+                   : ("Room 3".equalsIgnoreCase(normFacilityKey) ? "RM-103" : ""));
+
+        Booking maintBlock = new Booking(
+                normFacilityKey + " (" + status + ")",
+                "Confirmed",
+                startIso,
+                "Maintenance: " + startIso + " to " + endIso,
+                "Resort Maintenance",
+                "₱0.00"
+        );
+        maintBlock.setBookingId(maintId);
+        maintBlock.setRoomId(dbRoomId);
+        maintBlock.setCheckInDate(startIso);
+        maintBlock.setCheckOutDate(endIso);
+        addBooking(context, maintBlock);
+    }
+
+    private void removeLocalMaintenanceBookingBlock(Context context, String normFacilityKey) {
+        String maintId = "MAINT-" + normFacilityKey.replaceAll("\\s+", "").toUpperCase();
+        for (int i = bookingsList.size() - 1; i >= 0; i--) {
+            Booking b = bookingsList.get(i);
+            if (b != null && maintId.equalsIgnoreCase(b.getBookingId())) {
+                bookingsList.remove(i);
+            }
+        }
+        if (context != null) {
+            saveBookings(context);
+        }
     }
 
     public String getFacilityStatusOverride(Context context, String facilityName) {
-        if (context == null || facilityName == null) return null;
-        SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
-        String val = prefs.getString(getNormalizedFacilityKey(facilityName), null);
-        if (val == null) {
-            val = prefs.getString(facilityName.trim(), null);
+        if (facilityName == null) return null;
+        String normKey = getNormalizedFacilityKey(facilityName);
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
+            String val = prefs.getString(normKey, null);
+            if (val == null) {
+                val = prefs.getString(facilityName.trim(), null);
+            }
+            if (val != null) {
+                memoryStatusOverrides.put(normKey, val);
+                return val;
+            }
         }
-        return val;
+        return memoryStatusOverrides.get(normKey);
     }
 
-    private String getNormalizedFacilityKey(String name) {
+    public String getFacilityMaintenanceStartDate(Context context, String facilityName) {
+        if (facilityName == null) return null;
+        String normKey = getNormalizedFacilityKey(facilityName);
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
+            String s = prefs.getString(normKey + "_start", null);
+            if (s != null) {
+                memoryMaintStartDates.put(normKey, s);
+                return s;
+            }
+        }
+        return memoryMaintStartDates.get(normKey);
+    }
+
+    public String getFacilityMaintenanceEndDate(Context context, String facilityName) {
+        if (facilityName == null) return null;
+        String normKey = getNormalizedFacilityKey(facilityName);
+        if (context != null) {
+            SharedPreferences prefs = context.getSharedPreferences(PREF_FACILITY_OVERRIDE, Context.MODE_PRIVATE);
+            String e = prefs.getString(normKey + "_end", null);
+            if (e != null) {
+                memoryMaintEndDates.put(normKey, e);
+                return e;
+            }
+        }
+        return memoryMaintEndDates.get(normKey);
+    }
+
+    public boolean isFacilityUnderMaintenanceOnDate(Context context, String facilityName, String targetIsoDate) {
+        if (facilityName == null) return false;
+        String normKey = getNormalizedFacilityKey(facilityName);
+        String status = getFacilityStatusOverride(context, normKey);
+        if (status == null || "Available".equalsIgnoreCase(status) || "Open".equalsIgnoreCase(status) || "Ready".equalsIgnoreCase(status)) {
+            return false;
+        }
+        String startIso = getFacilityMaintenanceStartDate(context, normKey);
+        String endIso = getFacilityMaintenanceEndDate(context, normKey);
+        if (startIso == null || endIso == null || targetIsoDate == null) {
+            return true; // Indefinite maintenance until set back to Available
+        }
+        Date target = parseAnyDate(targetIsoDate);
+        Date start = parseAnyDate(startIso);
+        Date end = parseAnyDate(endIso);
+        if (target == null || start == null || end == null) return true;
+        return !target.before(start) && !target.after(end);
+    }
+
+    public String getNormalizedFacilityKey(String name) {
         if (name == null) return "";
         String key = name.toLowerCase().trim();
-        if (key.contains("room 1") || key.contains("101") || key.contains("villa suite")) return "Room 1";
-        if (key.contains("room 2") || key.contains("102") || key.contains("villa deluxe")) return "Room 2";
-        if (key.contains("room 3") || key.contains("201") || key.contains("family loft")) return "Room 3";
-        if (key.contains("court 1")) return "Court 1";
-        if (key.contains("court 2")) return "Court 2";
-        if (key.contains("court 3")) return "Court 3";
-        if (key.contains("basketball")) return "Basketball Arena";
-        if (key.contains("buyout")) return "Full Resort Buyout";
+        if (key.contains("room 1") || key.contains("101") || key.contains("suite 101")) return "Room 1";
+        if (key.contains("room 2") || key.contains("102") || key.contains("suite 102") || key.contains("deluxe 102")) return "Room 2";
+        if (key.contains("room 3") || key.contains("103") || key.contains("201") || key.contains("suite 103") || key.contains("family")) return "Room 3";
+        if (key.contains("court 1") || key.contains("crt-01")) return "Court 1";
+        if (key.contains("court 2") || key.contains("crt-02")) return "Court 2";
+        if (key.contains("court 3") || key.contains("crt-03") || key.contains("basketball") || key.contains("bk")) return "Court 3";
+        if (key.contains("buyout") || key.contains("exclusive")) return "Full Resort Buyout";
         return name.trim();
     }
 
     // --- FACILITY BOOKED CHECK HELPERS ---
 
+    public static Date parseAnyDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty() || "null".equalsIgnoreCase(dateStr.trim())) {
+            return null;
+        }
+        String clean = dateStr.trim();
+        if (clean.length() >= 10 && clean.charAt(4) == '-' && clean.charAt(7) == '-') {
+            clean = clean.substring(0, 10);
+        }
+        String[] formats = {
+                "yyyy-MM-dd",
+                "EEE, MMM dd, yyyy",
+                "EEE, MMM dd yyyy",
+                "MMM dd, yyyy",
+                "MM/dd/yyyy",
+                "yyyy/MM/dd"
+        };
+        for (String fmt : formats) {
+            try {
+                SimpleDateFormat sdf = new SimpleDateFormat(fmt, Locale.US);
+                sdf.setLenient(false);
+                Date parsed = sdf.parse(clean);
+                if (parsed != null) return stripTime(parsed);
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
+
+    private static Date stripTime(Date date) {
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTime();
+    }
+
+    private boolean matchesRoomFacility(String searchKey, String title, String roomId) {
+        String normSearch = getNormalizedFacilityKey(searchKey);
+        if ("Full Resort Buyout".equalsIgnoreCase(normSearch)) {
+            return true; // Whole resort buyout overlaps with any room
+        }
+        String normTitle = getNormalizedFacilityKey(title);
+        String normRoomId = getNormalizedFacilityKey(roomId);
+        if ("Full Resort Buyout".equalsIgnoreCase(normTitle)) {
+            return true;
+        }
+        return (!normSearch.isEmpty() && (normSearch.equalsIgnoreCase(normTitle) || normSearch.equalsIgnoreCase(normRoomId)));
+    }
+
+    public boolean isRoomBookedForDates(String roomIdOrTitle, String checkInIso, String checkOutIso) {
+        if (roomIdOrTitle == null || checkInIso == null || checkOutIso == null) return false;
+
+        try {
+            Date targetIn = parseAnyDate(checkInIso);
+            Date targetOut = parseAnyDate(checkOutIso);
+            if (targetIn == null) return false;
+
+            if (targetOut == null || !targetOut.after(targetIn)) {
+                Calendar cal = Calendar.getInstance();
+                cal.setTime(targetIn);
+                cal.add(Calendar.DAY_OF_MONTH, 1);
+                targetOut = cal.getTime();
+            }
+
+            // 1. Check Admin Maintenance / Cleaning / Unavailable Date Range first!
+            String normKey = getNormalizedFacilityKey(roomIdOrTitle);
+            String overrideStatus = memoryStatusOverrides.get(normKey);
+            if (overrideStatus != null && !"Available".equalsIgnoreCase(overrideStatus)
+                    && !"Open".equalsIgnoreCase(overrideStatus) && !"Ready".equalsIgnoreCase(overrideStatus)) {
+                String mStartStr = memoryMaintStartDates.get(normKey);
+                String mEndStr = memoryMaintEndDates.get(normKey);
+                if (mStartStr != null && mEndStr != null) {
+                    Date mStart = parseAnyDate(mStartStr);
+                    Date mEnd = parseAnyDate(mEndStr);
+                    if (mStart != null && mEnd != null) {
+                        if (!mEnd.after(mStart)) {
+                            Calendar c = Calendar.getInstance();
+                            c.setTime(mStart);
+                            c.add(Calendar.DAY_OF_MONTH, 1);
+                            mEnd = c.getTime();
+                        }
+                        if (mStart.before(targetOut) && mEnd.after(targetIn)) {
+                            return true; // Blocked by Admin Maintenance dates!
+                        }
+                    }
+                } else {
+                    return true; // Blocked indefinitely until set to Available
+                }
+            }
+
+            // 2. Check active guest bookings
+            for (Booking b : bookingsList) {
+                if (b == null) continue;
+                String status = b.getStatus();
+                if ("Confirmed".equalsIgnoreCase(status) || "Pending".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status)) {
+                    String title = b.getTitle() != null ? b.getTitle() : "";
+                    String bRoomId = b.getRoomId() != null ? b.getRoomId() : "";
+
+                    if (!matchesRoomFacility(roomIdOrTitle, title, bRoomId)) {
+                        continue;
+                    }
+
+                    String exInStr = b.getCheckInDate();
+                    String exOutStr = b.getCheckOutDate();
+
+                    if (exInStr == null || exInStr.isEmpty() || "null".equalsIgnoreCase(exInStr)) {
+                        exInStr = b.getDate();
+                    }
+                    if (exOutStr == null || exOutStr.isEmpty() || "null".equalsIgnoreCase(exOutStr)) {
+                        exOutStr = exInStr;
+                    }
+
+                    if (exInStr != null && !exInStr.isEmpty()) {
+                        Date existingIn = parseAnyDate(exInStr);
+                        Date existingOut = parseAnyDate(exOutStr);
+
+                        if (existingIn != null) {
+                            if (existingOut == null || !existingOut.after(existingIn)) {
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(existingIn);
+                                cal.add(Calendar.DAY_OF_MONTH, 1);
+                                existingOut = cal.getTime();
+                            }
+
+                            if (existingIn.before(targetOut) && existingOut.after(targetIn)) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
+        return false;
+    }
+
     public boolean hasActiveGuestBooking(String facilityName) {
         if (facilityName == null || facilityName.isEmpty()) return false;
-        String searchKey = facilityName.toLowerCase().trim();
+        SimpleDateFormat isoFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        Calendar cal = Calendar.getInstance();
+        String todayIso = isoFmt.format(cal.getTime());
+        cal.add(Calendar.DAY_OF_MONTH, 1);
+        String tomorrowIso = isoFmt.format(cal.getTime());
 
-        int parenIdx = searchKey.indexOf('(');
-        if (parenIdx > 0) {
-            searchKey = searchKey.substring(0, parenIdx).trim();
-        }
+        // Check only real guest bookings (excluding MAINT- blocks) covering TODAY
+        Date today = parseAnyDate(todayIso);
+        Date tomorrow = parseAnyDate(tomorrowIso);
+        if (today == null || tomorrow == null) return false;
 
         for (Booking b : bookingsList) {
+            if (b == null) continue;
+            if (b.getBookingId() != null && b.getBookingId().startsWith("MAINT-")) continue;
             String status = b.getStatus();
-            if ("Confirmed".equalsIgnoreCase(status) || "Pending".equalsIgnoreCase(status)) {
-                String title = b.getTitle() != null ? b.getTitle().toLowerCase() : "";
-                String d1 = b.getDetail1() != null ? b.getDetail1().toLowerCase() : "";
-                String d2 = b.getDetail2() != null ? b.getDetail2().toLowerCase() : "";
-
-                if (title.contains(searchKey) || d1.contains(searchKey) || d2.contains(searchKey) ||
-                        (!title.isEmpty() && searchKey.contains(title))) {
-                    return true;
+            if ("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status)) {
+                if (!matchesRoomFacility(facilityName, b.getTitle(), b.getRoomId())) continue;
+                String inStr = b.getCheckInDate() != null && !b.getCheckInDate().isEmpty() ? b.getCheckInDate() : b.getDate();
+                String outStr = b.getCheckOutDate() != null && !b.getCheckOutDate().isEmpty() ? b.getCheckOutDate() : inStr;
+                Date exIn = parseAnyDate(inStr);
+                Date exOut = parseAnyDate(outStr);
+                if (exIn != null) {
+                    if (exOut == null || !exOut.after(exIn)) {
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(exIn);
+                        c.add(Calendar.DAY_OF_MONTH, 1);
+                        exOut = c.getTime();
+                    }
+                    if (exIn.before(tomorrow) && exOut.after(today)) {
+                        return true;
+                    }
                 }
             }
         }
@@ -271,23 +635,18 @@ public class ResortRepository {
     public String getFacilityDisplayStatus(Context context, String facilityName) {
         if (facilityName == null || facilityName.isEmpty()) return "Available";
 
-        if (hasActiveGuestBooking(facilityName)) {
-            return "Booked";
+        SimpleDateFormat isoFmt = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+        String todayIso = isoFmt.format(new Date());
+
+        if (isFacilityUnderMaintenanceOnDate(context, facilityName, todayIso)) {
+            String override = getFacilityStatusOverride(context, facilityName);
+            if ("Cleaning".equalsIgnoreCase(override)) return "Cleaning";
+            if ("Unavailable".equalsIgnoreCase(override) || "Occupied".equalsIgnoreCase(override)) return "Unavailable";
+            return "Maintenance";
         }
 
-        if (context != null) {
-            String override = getFacilityStatusOverride(context, facilityName);
-            if (override != null && !override.trim().isEmpty()) {
-                if ("Maintenance".equalsIgnoreCase(override)) {
-                    return "Maintenance";
-                } else if ("Cleaning".equalsIgnoreCase(override)) {
-                    return "Cleaning";
-                } else if ("Unavailable".equalsIgnoreCase(override) || "Booked".equalsIgnoreCase(override) || "Occupied".equalsIgnoreCase(override)) {
-                    return "Unavailable";
-                } else if ("Available".equalsIgnoreCase(override) || "Open".equalsIgnoreCase(override)) {
-                    return "Available";
-                }
-            }
+        if (hasActiveGuestBooking(facilityName)) {
+            return "Booked";
         }
 
         return "Available";
@@ -304,9 +663,9 @@ public class ResortRepository {
 
     public int getConfirmedRoomsCount(Context context) {
         int count = 0;
-        if (isFacilityBooked(context, "Room 1") || isFacilityBooked(context, "Villa Suite 101")) count++;
-        if (isFacilityBooked(context, "Room 2") || isFacilityBooked(context, "Villa Deluxe 102")) count++;
-        if (isFacilityBooked(context, "Room 3") || isFacilityBooked(context, "Family Loft 201")) count++;
+        if (isFacilityBooked(context, "Room 1")) count++;
+        if (isFacilityBooked(context, "Room 2")) count++;
+        if (isFacilityBooked(context, "Room 3")) count++;
         return count;
     }
 
@@ -314,44 +673,107 @@ public class ResortRepository {
         return getConfirmedRoomsCount(null);
     }
 
-    // --- BOOKING ADD METHODS (ALL OVERLOADS) ---
+    // --- BOOKING ADD METHODS (ALL OVERLOADS WITH DEDUPLICATION) ---
 
-    // 1. Core method with Context
-    public void addBooking(Context context, Booking booking) {
-        if (booking != null) {
-            bookingsList.add(0, booking);
-            if (context != null) {
-                saveBookings(context);
+    public synchronized void addBooking(Context context, Booking booking) {
+        if (booking == null) return;
+        if (booking.getTitle() == null || booking.getTitle().trim().isEmpty()) return;
+
+        syncBookingCatalogImage(booking);
+
+        String newId = booking.getBookingId() != null ? booking.getBookingId().trim() : "";
+        String newRoom = booking.getRoomId() != null ? booking.getRoomId().trim() : "";
+        String newIn = booking.getCheckInDate() != null ? booking.getCheckInDate().trim() : "";
+        String newOut = booking.getCheckOutDate() != null ? booking.getCheckOutDate().trim() : "";
+
+        for (int i = 0; i < bookingsList.size(); i++) {
+            Booking existing = bookingsList.get(i);
+            if (existing == null) continue;
+            String exId = existing.getBookingId() != null ? existing.getBookingId().trim() : "";
+            String exRoom = existing.getRoomId() != null ? existing.getRoomId().trim() : "";
+            String exIn = existing.getCheckInDate() != null ? existing.getCheckInDate().trim() : "";
+            String exOut = existing.getCheckOutDate() != null ? existing.getCheckOutDate().trim() : "";
+
+            boolean sameId = !newId.isEmpty() && newId.equalsIgnoreCase(exId);
+            boolean sameRoomAndDates = !newRoom.isEmpty() && newRoom.equalsIgnoreCase(exRoom)
+                    && !newIn.isEmpty() && newIn.equalsIgnoreCase(exIn)
+                    && !newOut.isEmpty() && newOut.equalsIgnoreCase(exOut)
+                    && !"Cancelled".equalsIgnoreCase(existing.getStatus())
+                    && !"Cancelled".equalsIgnoreCase(booking.getStatus());
+            boolean sameDetails = newId.isEmpty() && exId.isEmpty()
+                    && existing.getTitle() != null && existing.getTitle().equalsIgnoreCase(booking.getTitle())
+                    && existing.getDate() != null && existing.getDate().equalsIgnoreCase(booking.getDate())
+                    && existing.getDetail1() != null && existing.getDetail1().equalsIgnoreCase(booking.getDetail1());
+
+            if (sameId || sameRoomAndDates || sameDetails) {
+                if (!newId.isEmpty()) {
+                    existing.setBookingId(newId);
+                }
+
+                // Do not downgrade an already Confirmed local booking back to Pending if remote sync lags
+                if (!("Confirmed".equalsIgnoreCase(existing.getStatus()) && "Pending".equalsIgnoreCase(booking.getStatus()))) {
+                    existing.setStatus(booking.getStatus());
+                }
+
+                if (booking.getTotalAmount() >= existing.getTotalAmount() && booking.getPrice() != null && !booking.getPrice().isEmpty()) {
+                    existing.setPrice(booking.getPrice());
+                    existing.setTotalAmount(booking.getTotalAmount());
+                }
+                if (booking.getImagePath() != null && !booking.getImagePath().trim().isEmpty()) {
+                    existing.setImagePath(booking.getImagePath());
+                }
+                if (booking.getImageResId() != 0 && booking.getImageResId() != R.drawable.rooms_icon_img) {
+                    existing.setImageResId(booking.getImageResId());
+                }
+                if (booking.getCustomerId() != null && !booking.getCustomerId().isEmpty()) {
+                    existing.setCustomerId(booking.getCustomerId());
+                }
+                if (booking.getRoomId() != null && !booking.getRoomId().isEmpty()) {
+                    existing.setRoomId(booking.getRoomId());
+                }
+                if (booking.getCourtId() != null && !booking.getCourtId().isEmpty()) {
+                    existing.setCourtId(booking.getCourtId());
+                }
+                if (booking.getCheckInDate() != null && !booking.getCheckInDate().isEmpty()) {
+                    existing.setCheckInDate(booking.getCheckInDate());
+                }
+                if (booking.getCheckOutDate() != null && !booking.getCheckOutDate().isEmpty()) {
+                    existing.setCheckOutDate(booking.getCheckOutDate());
+                }
+                syncBookingCatalogImage(existing);
+                if (context != null) {
+                    saveBookings(context);
+                }
+                return;
             }
+        }
+
+        bookingsList.add(0, booking);
+        if (context != null) {
+            saveBookings(context);
         }
     }
 
-    // 2. Core method without Context
     public void addBooking(Booking booking) {
         addBooking(null, booking);
     }
 
-    // 3. Full 7-parameter method (Context + status)
     public void addBooking(Context context, String title, String status, String date, String detail1, String detail2, String price) {
         addBooking(context, new Booking(title, status, date, detail1, detail2, price));
     }
 
-    // Full 9-parameter method with image support
     public void addBooking(Context context, String title, String status, String date, String detail1, String detail2, String price, String imagePath, int imageResId) {
         addBooking(context, new Booking(title, status, date, detail1, detail2, price, imagePath, imageResId));
     }
 
-    // 4. 6-parameter method with Context (Defaults to "Confirmed")
     public void addBooking(Context context, String title, String date, String detail1, String detail2, String price) {
         addBooking(context, title, "Confirmed", date, detail1, detail2, price);
     }
 
-    // 5. 6-parameter method without Context (Custom status)
     public void addBooking(String title, String status, String date, String detail1, String detail2, String price) {
         addBooking(null, title, status, date, detail1, detail2, price);
     }
 
-    // 6. 5-parameter method without Context (Defaults to "Confirmed")
     public void addBooking(String title, String date, String detail1, String detail2, String price) {
         addBooking(null, title, "Confirmed", date, detail1, detail2, price);
     }
