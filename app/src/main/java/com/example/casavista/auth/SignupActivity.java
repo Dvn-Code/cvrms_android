@@ -33,7 +33,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
 
-// Handles new guest registration form with required field validation, Terms agreement, and age restrictions
 public class SignupActivity extends AppCompatActivity {
 
     private TextInputLayout tilFirstName, tilMiddleName, tilLastName, tilGender, tilBirthdate;
@@ -52,7 +51,6 @@ public class SignupActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
-        // Bind TextInputLayout containers
         tilFirstName = findViewById(R.id.tilFirstName);
         tilMiddleName = findViewById(R.id.tilMiddleName);
         tilLastName = findViewById(R.id.tilLastName);
@@ -65,7 +63,6 @@ public class SignupActivity extends AppCompatActivity {
         tilPassword = findViewById(R.id.tilPassword);
         tilConfirmPassword = findViewById(R.id.tilConfirmPassword);
 
-        // Bind registration form input fields
         etFirstName = findViewById(R.id.etFirstName);
         etMiddleName = findViewById(R.id.etMiddleName);
         etLastName = findViewById(R.id.etLastName);
@@ -78,12 +75,10 @@ public class SignupActivity extends AppCompatActivity {
         etPassword = findViewById(R.id.etPassword);
         etConfirmPassword = findViewById(R.id.etConfirmPassword);
 
-        // Bind Terms & Conditions views
         cbTerms = findViewById(R.id.cbTerms);
         View tvTermsLink = findViewById(R.id.tvTermsLink);
         View tvTermsLabel = findViewById(R.id.tvTermsLabel);
 
-        // Terms click handlers
         if (tvTermsLink != null) {
             tvTermsLink.setOnClickListener(v -> showTermsDialog());
         }
@@ -101,24 +96,16 @@ public class SignupActivity extends AppCompatActivity {
             });
         }
 
-        // Add auto-clear error watchers as user types
         setupClearErrorWatchers();
-
-        // Setup end icon info tooltips for all fields
         setupFieldTooltips();
 
-        // Gender picker dialog click trigger
         etGender.setOnClickListener(v -> showGenderPickerDialog());
-
-        // Birthdate calendar popup picker trigger
         etBirthdate.setOnClickListener(v -> showCalendarPicker());
 
-        // Action button click triggers
         findViewById(R.id.btnSignUp).setOnClickListener(v -> performSignUp());
         findViewById(R.id.tvLogIn).setOnClickListener(v -> finish());
     }
 
-    // Opens Terms & Conditions popup modal and enforces scroll-to-bottom before enabling I Agree
     private void showTermsDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_terms_and_conditions, null);
 
@@ -132,20 +119,27 @@ public class SignupActivity extends AppCompatActivity {
                 .setCancelable(true)
                 .create();
 
-        if (hasScrolledTerms) {
+        if (btnAgreeTerms != null) {
+            btnAgreeTerms.setText("Agree & Continue");
             btnAgreeTerms.setEnabled(true);
-            tvScrollNotice.setText("✓ You have read the entire Terms & Conditions. You may now accept.");
-            tvScrollNotice.setTextColor(0xFF2E7D32);
+        }
+
+        if (hasScrolledTerms) {
+            if (btnAgreeTerms != null) btnAgreeTerms.setAlpha(1.0f);
+            if (tvScrollNotice != null) {
+                tvScrollNotice.setText("✓ You have read the entire Terms & Conditions. You may now accept.");
+                tvScrollNotice.setTextColor(0xFF2E7D32);
+            }
         } else {
-            btnAgreeTerms.setEnabled(false);
+            if (btnAgreeTerms != null) btnAgreeTerms.setAlpha(0.7f);
             if (svTerms != null) {
                 svTerms.getViewTreeObserver().addOnScrollChangedListener(() -> {
                     if (svTerms.getChildCount() > 0) {
                         View child = svTerms.getChildAt(svTerms.getChildCount() - 1);
                         int diff = (child.getBottom() - (svTerms.getHeight() + svTerms.getScrollY()));
-                        if (diff <= 30) {
+                        if (diff <= 100) {
                             hasScrolledTerms = true;
-                            btnAgreeTerms.setEnabled(true);
+                            if (btnAgreeTerms != null) btnAgreeTerms.setAlpha(1.0f);
                             if (tvScrollNotice != null) {
                                 tvScrollNotice.setText("✓ You have read the entire Terms & Conditions. You may now accept.");
                                 tvScrollNotice.setTextColor(0xFF2E7D32);
@@ -162,6 +156,16 @@ public class SignupActivity extends AppCompatActivity {
 
         if (btnAgreeTerms != null) {
             btnAgreeTerms.setOnClickListener(v -> {
+                if (!hasScrolledTerms && svTerms != null && svTerms.getChildCount() > 0) {
+                    View child = svTerms.getChildAt(svTerms.getChildCount() - 1);
+                    int diff = (child.getBottom() - (svTerms.getHeight() + svTerms.getScrollY()));
+                    if (diff > 100) {
+                        Toast.makeText(this, "Please scroll to the bottom of the Terms & Conditions to agree.", Toast.LENGTH_SHORT).show();
+                        svTerms.fullScroll(View.FOCUS_DOWN);
+                        return;
+                    }
+                }
+
                 hasScrolledTerms = true;
                 if (cbTerms != null) cbTerms.setChecked(true);
                 getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE).edit().putBoolean("has_agreed_terms", true).apply();
@@ -173,7 +177,6 @@ public class SignupActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Configures interactive tooltip popups for every input field info icon
     private void setupFieldTooltips() {
         setTooltipListener(tilFirstName, "First Name",
                 "Enter your legal given name exactly as stated on official government IDs (e.g., Juan).");
@@ -184,7 +187,7 @@ public class SignupActivity extends AppCompatActivity {
         setTooltipListener(tilGender, "Gender",
                 "Select your gender identity for room and amenity guest reservation records.");
         setTooltipListener(tilBirthdate, "Birthdate (18+ Requirement)",
-                "Select your birthdate. Account registration is legally restricted to individuals at least 18 years old (born on or before Oct 7, 2008). Dates after Oct 7, 2008 are grayed out.");
+                "Select your birthdate. Account registration is legally restricted to individuals at least 18 years old.");
         setTooltipListener(tilPhoneNumber, "Phone Number",
                 "Enter a valid 11-digit Philippine mobile number (e.g., 09123456789) to receive reservation SMS confirmations.");
         setTooltipListener(tilEmail, "Email Address",
@@ -234,7 +237,6 @@ public class SignupActivity extends AppCompatActivity {
         });
     }
 
-    // Opens selection dialog for gender options
     private void showGenderPickerDialog() {
         String[] options = {"Male", "Female", "Non-binary", "Prefer not to say"};
         new AlertDialog.Builder(this)
@@ -246,19 +248,16 @@ public class SignupActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Displays Material Calendar date picker with 18+ age restriction (dates after Oct 7, 2008 disabled)
     private void showCalendarPicker() {
         Calendar calStart = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         calStart.set(1900, Calendar.JANUARY, 1, 0, 0, 0);
         calStart.set(Calendar.MILLISECOND, 0);
         long minAllowedBirthdateMillis = calStart.getTimeInMillis();
 
-        // Calculate max allowed date (18 years ago from today: Oct 7, 2008)
         Calendar cal18 = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         cal18.add(Calendar.YEAR, -18);
         long maxAllowedBirthdateMillis = cal18.getTimeInMillis();
 
-        // Check if a date was already entered in etBirthdate
         long initialSelection = maxAllowedBirthdateMillis;
         String existingDateStr = etBirthdate.getText().toString().trim();
         if (!existingDateStr.isEmpty()) {
@@ -272,7 +271,6 @@ public class SignupActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
         }
 
-        // Enforce constraint: Allow range [1900 .. Oct 7, 2008], disable dates after Oct 7, 2008
         CalendarConstraints constraints = new CalendarConstraints.Builder()
                 .setStart(minAllowedBirthdateMillis)
                 .setEnd(maxAllowedBirthdateMillis)
@@ -286,8 +284,6 @@ public class SignupActivity extends AppCompatActivity {
                 .setSelection(initialSelection)
                 .build();
 
-        Toast.makeText(this, "Select your birth year (1900 – Oct 7, 2008). Dates higher than Oct 7, 2008 are grayed out.", Toast.LENGTH_LONG).show();
-
         datePicker.addOnPositiveButtonClickListener(selection -> {
             SimpleDateFormat format = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
             format.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -298,7 +294,6 @@ public class SignupActivity extends AppCompatActivity {
         datePicker.show(getSupportFragmentManager(), "BIRTHDATE_PICKER");
     }
 
-    // Validates required fields, highlights unfulfilled boxes in RED, checks 18+ age & terms scroll
     private void performSignUp() {
         String firstName = etFirstName.getText().toString().trim();
         String middleName = etMiddleName.getText().toString().trim();
@@ -312,7 +307,6 @@ public class SignupActivity extends AppCompatActivity {
         String password = etPassword.getText().toString().trim();
         String confirmPassword = etConfirmPassword.getText().toString().trim();
 
-        // Clear previous error states
         if (tilFirstName != null) tilFirstName.setError(null);
         if (tilLastName != null) tilLastName.setError(null);
         if (tilGender != null) tilGender.setError(null);
@@ -330,22 +324,18 @@ public class SignupActivity extends AppCompatActivity {
             if (tilFirstName != null) tilFirstName.setError("First name is required");
             hasError = true;
         }
-
         if (lastName.isEmpty()) {
             if (tilLastName != null) tilLastName.setError("Last name is required");
             hasError = true;
         }
-
         if (gender.isEmpty()) {
             if (tilGender != null) tilGender.setError("Please select your gender");
             hasError = true;
         }
-
         if (birthdate.isEmpty()) {
             if (tilBirthdate != null) tilBirthdate.setError("Please select your birthdate");
             hasError = true;
         } else {
-            // Verify age >= 18
             try {
                 SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy", Locale.US);
                 Date birthDateObj = sdf.parse(birthdate);
@@ -358,41 +348,34 @@ public class SignupActivity extends AppCompatActivity {
 
                     if (birthCal.after(minAgeCal)) {
                         if (tilBirthdate != null) {
-                            tilBirthdate.setError("You must be at least 18 years old (born on or before Oct 7, 2008)");
+                            tilBirthdate.setError("You must be at least 18 years old");
                         }
                         hasError = true;
                     }
                 }
-            } catch (Exception e) {
-                // Ignore parsing exception
-            }
+            } catch (Exception ignored) {}
         }
 
-        if (phone.isEmpty()) {
-            if (tilPhoneNumber != null) tilPhoneNumber.setError("Phone number is required");
+        if (phone.isEmpty() || phone.length() < 7) {
+            if (tilPhoneNumber != null) tilPhoneNumber.setError("Valid phone number is required");
             hasError = true;
         }
-
-        if (email.isEmpty()) {
-            if (tilEmail != null) tilEmail.setError("Email address is required");
+        if (email.isEmpty() || !email.contains("@")) {
+            if (tilEmail != null) tilEmail.setError("Valid email address is required");
             hasError = true;
         }
-
         if (address.isEmpty()) {
             if (tilAddress != null) tilAddress.setError("Home address is required");
             hasError = true;
         }
-
-        if (username.isEmpty()) {
-            if (tilUsername != null) tilUsername.setError("Username is required");
+        if (username.isEmpty() || username.length() < 4) {
+            if (tilUsername != null) tilUsername.setError("Username must be at least 4 characters");
             hasError = true;
         }
-
-        if (password.isEmpty()) {
-            if (tilPassword != null) tilPassword.setError("Password is required");
+        if (password.isEmpty() || password.length() < 6) {
+            if (tilPassword != null) tilPassword.setError("Password must be at least 6 characters");
             hasError = true;
         }
-
         if (confirmPassword.isEmpty()) {
             if (tilConfirmPassword != null) tilConfirmPassword.setError("Confirm password is required");
             hasError = true;
@@ -412,12 +395,10 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // Construct full display name
         String fullName = middleName.isEmpty()
                 ? firstName + " " + lastName
                 : firstName + " " + middleName + " " + lastName;
 
-        // Step 1: Trigger Email Verification OTP before account creation
         Toast.makeText(this, "Sending 6-digit verification code to " + email + "...", Toast.LENGTH_SHORT).show();
 
         com.example.casavista.helpers.ApiHelper.sendVerificationCode(
@@ -428,7 +409,7 @@ public class SignupActivity extends AppCompatActivity {
                     public void onSuccess(org.json.JSONObject response) {
                         String devOtp = response != null ? response.optString("dev_otp", "") : "";
                         showEmailVerificationDialog(
-                                email, devOtp, firstName, middleName, lastName, fullName, gender, birthdate, phone, address, username
+                                email, devOtp, firstName, middleName, lastName, fullName, gender, birthdate, phone, address, username, password
                         );
                     }
 
@@ -440,7 +421,6 @@ public class SignupActivity extends AppCompatActivity {
         );
     }
 
-    // Displays Material AlertDialog requesting 6-digit OTP code before proceeding
     private void showEmailVerificationDialog(
             String email,
             String initialDevOtp,
@@ -452,7 +432,8 @@ public class SignupActivity extends AppCompatActivity {
             String birthdate,
             String phone,
             String address,
-            String username
+            String username,
+            String password
     ) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_email_verification, null);
         TextView tvSubtitle = dialogView.findViewById(R.id.tvVerificationSubtitle);
@@ -488,7 +469,6 @@ public class SignupActivity extends AppCompatActivity {
             MaterialButton btnVerify = (MaterialButton) dialog.getButton(AlertDialog.BUTTON_POSITIVE);
             MaterialButton btnResend = (MaterialButton) dialog.getButton(AlertDialog.BUTTON_NEUTRAL);
 
-            // 3-Minute (180 seconds) Countdown Timer for Resend Code button
             Runnable start3MinTimer = () -> {
                 if (btnResend != null) {
                     btnResend.setEnabled(false);
@@ -521,7 +501,6 @@ public class SignupActivity extends AppCompatActivity {
                 }.start();
             };
 
-            // Start initial 3-minute timer
             start3MinTimer.run();
 
             if (btnVerify != null) {
@@ -553,7 +532,7 @@ public class SignupActivity extends AppCompatActivity {
                                     }
                                     dialog.dismiss();
                                     executeRegistrationPipeline(
-                                            email, firstName, lastName, fullName, gender, birthdate, phone, address, username
+                                            email, firstName, middleName, lastName, fullName, gender, birthdate, phone, address, username, password
                                     );
                                 }
 
@@ -606,57 +585,76 @@ public class SignupActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Final registration pipeline executed after email verification succeeds
     private void executeRegistrationPipeline(
             String email,
             String firstName,
+            String middleName,
             String lastName,
             String fullName,
             String gender,
             String birthdate,
             String phone,
             String address,
-            String username
+            String username,
+            String password
     ) {
-        // Clear old dummy bookings for new user session
         com.example.casavista.data.ResortRepository.getInstance().clearBookings(this);
 
-        // Save profile data locally and sync with Vercel FastAPI + Supabase DB
-        SharedPreferences profilePrefs = getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
-        profilePrefs.edit()
-                .putString("user_name", fullName)
-                .putString("user_first_name", firstName)
-                .putString("user_last_name", lastName)
-                .putString("user_gender", gender)
-                .putString("user_birthdate", birthdate)
-                .putString("user_email", email)
-                .putString("user_phone", phone)
-                .putString("user_address", address)
-                .putString("user_username", username)
-                .apply();
-
-        com.example.casavista.helpers.ApiHelper.syncCustomerToDatabase(
+        com.example.casavista.helpers.ApiHelper.registerCustomerAccount(
                 this,
-                email,
                 firstName,
+                middleName,
                 lastName,
+                email,
                 phone,
                 address,
+                birthdate,
+                gender,
+                username,
+                password,
                 new com.example.casavista.helpers.ApiHelper.ApiCallback() {
                     @Override
                     public void onSuccess(org.json.JSONObject response) {
                         String custId = response.optString("customer_id", "");
-                        profilePrefs.edit().putString("customer_id", custId).apply();
-                        Toast.makeText(SignupActivity.this, "Account verified & saved to Supabase (" + custId + ")!", Toast.LENGTH_LONG).show();
-                        startActivity(new Intent(SignupActivity.this, MainActivity.class));
+                        SharedPreferences profilePrefs = getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
+                        String emailCleanKey = email.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+
+                        profilePrefs.edit()
+                                .putString("user_id", custId)
+                                .putString("customer_id", custId)
+                                .putString("customer_id_" + emailCleanKey, custId)
+                                .putString("user_name", fullName)
+                                .putString("user_name_" + emailCleanKey, fullName)
+                                .putString("user_first_name", firstName)
+                                .putString("user_last_name", lastName)
+                                .putString("user_gender", gender)
+                                .putString("user_gender_" + emailCleanKey, gender)
+                                .putString("user_birthdate", birthdate)
+                                .putString("user_birthdate_" + emailCleanKey, birthdate)
+                                .putString("user_email", email.toLowerCase())
+                                .putString("user_phone", phone)
+                                .putString("user_phone_" + emailCleanKey, phone)
+                                .putString("user_address", address)
+                                .putString("user_address_" + emailCleanKey, address)
+                                .putString("user_username", username)
+                                .putBoolean("is_logged_in", true)
+                                .putBoolean("has_agreed_terms", true)
+                                .apply();
+
+                        Toast.makeText(SignupActivity.this, "Account created & verified (" + custId + ")!", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(SignupActivity.this, MainActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
                         finish();
                     }
 
                     @Override
                     public void onError(String errorMessage) {
-                        Toast.makeText(SignupActivity.this, "Account created successfully!", Toast.LENGTH_SHORT).show();
-                        startActivity(new Intent(SignupActivity.this, MainActivity.class));
-                        finish();
+                        new MaterialAlertDialogBuilder(SignupActivity.this)
+                                .setTitle("Registration Error")
+                                .setMessage(errorMessage != null ? errorMessage : "Could not complete registration. Please check your details.")
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 }
         );

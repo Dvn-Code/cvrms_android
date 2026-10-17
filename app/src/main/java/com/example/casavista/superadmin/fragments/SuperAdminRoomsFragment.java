@@ -1,5 +1,7 @@
 package com.example.casavista.superadmin.fragments;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,14 +23,26 @@ import com.example.casavista.adapters.SuperAdminRoomAdapter;
 import com.example.casavista.data.ResortRepository;
 import com.example.casavista.helpers.AvatarHelper;
 import com.example.casavista.models.CatalogItem;
+import com.example.casavista.network.SupabaseClient;
+import com.example.casavista.superadmin.SuperAdminMainActivity;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
-// Super Admin fragment for managing room and court availability status across the resort
+import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
+
 public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomAdapter.OnRoomStatusChangeListener {
+
+    private static final String MAINT_PREFS = "AdminMaintenanceSchedulePrefs";
 
     private RecyclerView rvRooms;
     private MaterialButton tabAll, tabVillas, tabCourts, tabBuyout;
@@ -47,19 +61,16 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         super.onViewCreated(view, savedInstanceState);
         repository = ResortRepository.getInstance();
 
-        // Bind RecyclerView and layout manager
         rvRooms = view.findViewById(R.id.rvSuperAdminRooms);
         if (rvRooms != null) {
             rvRooms.setLayoutManager(new LinearLayoutManager(getContext()));
         }
 
-        // Bind category filter tabs
         tabAll = view.findViewById(R.id.tabSuperRoomAll);
         tabVillas = view.findViewById(R.id.tabSuperRoomVillas);
         tabCourts = view.findViewById(R.id.tabSuperRoomCourts);
         tabBuyout = view.findViewById(R.id.tabSuperRoomBuyout);
 
-        // Tab click triggers
         if (tabAll != null) tabAll.setOnClickListener(v -> filterCategory("All"));
         if (tabVillas != null) tabVillas.setOnClickListener(v -> filterCategory("Room"));
         if (tabCourts != null) tabCourts.setOnClickListener(v -> filterCategory("Courts"));
@@ -68,10 +79,10 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         View cardAvatar = view.findViewById(R.id.cardSuperAdminRoomsAvatar);
         if (cardAvatar != null) {
             cardAvatar.setOnClickListener(v -> {
-                com.example.casavista.superadmin.SuperAdminMainActivity superActivity = (com.example.casavista.superadmin.SuperAdminMainActivity) getActivity();
-                if (superActivity != null) {
+                if (getActivity() instanceof SuperAdminMainActivity) {
+                    SuperAdminMainActivity superActivity = (SuperAdminMainActivity) getActivity();
                     superActivity.loadFragment(new SuperAdminProfileFragment());
-                    com.google.android.material.bottomnavigation.BottomNavigationView navView = superActivity.findViewById(R.id.superAdminNavView);
+                    BottomNavigationView navView = superActivity.findViewById(R.id.superAdminNavView);
                     if (navView != null) {
                         navView.setSelectedItemId(R.id.nav_super_profile);
                     }
@@ -80,16 +91,15 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         }
 
         loadRoomsList();
+        syncSupabaseFacilityState();
     }
 
-    // Filters the displayed room list based on selected category tab
     private void filterCategory(String category) {
         this.currentCategory = category;
         highlightTabs(category);
         loadRoomsList();
     }
 
-    // Highlights the active category tab
     private void highlightTabs(String category) {
         MaterialButton[] tabs = {tabAll, tabVillas, tabCourts, tabBuyout};
         String[] catNames = {"All", "Room", "Courts", "Buyout"};
@@ -107,7 +117,6 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         }
     }
 
-    // Fetches rooms and facilities from repository and attaches adapter
     private void loadRoomsList() {
         if (rvRooms == null || repository == null || getContext() == null) return;
 
@@ -136,9 +145,92 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         }
     }
 
+    private void syncSupabaseFacilityState() {
+        if (getContext() == null) return;
+        final String todayStr = new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+
+        SupabaseClient.getInstance().fetchBookings(new SupabaseClient.DataCallback() {
+            @Override
+            public void onSuccess(String jsonResponse) {
+                if (!isAdded() || getContext() == null) return;
+                Set<String> activeTodayKeys = new HashSet<>();
+                SharedPreferences maintPrefs = requireContext().getSharedPreferences(MAINT_PREFS, Context.MODE_PRIVATE);
+
+                try {
+                    JSONArray arr = new JSONArray(jsonResponse);
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject b = arr.getJSONObject(i);
+                        String bId = b.optString("booking_id", "");
+                        String status = b.optString("status", "");
+                        if (!"Confirmed".equalsIgnoreCase(status) && !"Checked-In".equalsIgnoreCase(status)) {
+                            continue;
+                        }
+
+                        boolean isMaint = bId.startsWith("MNT-");
+                        String checkIn = b.optString("check_in_date", "");
+                        String checkOut = b.optString("check_out_date", "");
+
+                        if (checkIn.length() >= 10 && checkOut.length() >= 10) {
+                            String inDate = checkIn.substring(0, 10);
+                            String outDate = checkOut.substring(0, 10);
+                            boolean occupiesToday = todayStr.compareTo(inDate) >= 0 && todayStr.compareTo(outDate) < 0;
+
+                            JSONArray rIds = b.optJSONArray("room_ids");
+                            if (rIds != null && rIds.length() > 0) {
+                                for (int j = 0; j < rIds.length(); j++) {
+                                    String uiKey = mapDbIdToKey(rIds.optString(j));
+                                    if (uiKey != null && occupiesToday) {
+                                        if (isMaint) {
+                                            maintPrefs.edit()
+                                                    .putString(uiKey + "_status", "Maintenance")
+                                                    .putString(uiKey + "_start", inDate)
+                                                    .putString(uiKey + "_end", outDate)
+                                                    .putString(uiKey + "_booking_id", bId)
+                                                    .apply();
+                                        } else {
+                                            activeTodayKeys.add(uiKey);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        String courtId = b.optString("court_id", "");
+                        String bDate = b.optString("booking_date", "");
+                        if (!courtId.isEmpty() && !"null".equalsIgnoreCase(courtId) && bDate.startsWith(todayStr)) {
+                            String uiCourt = mapDbIdToKey(courtId);
+                            if (uiCourt != null && !isMaint) {
+                                activeTodayKeys.add(uiCourt);
+                            }
+                        }
+                    }
+                } catch (Exception ignored) {}
+
+                if (adapter != null) {
+                    adapter.setTodayGuestBookedKeys(activeTodayKeys);
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {}
+        });
+    }
+
+    private String mapDbIdToKey(String dbId) {
+        if (dbId == null) return null;
+        String u = dbId.toUpperCase(Locale.US);
+        if (u.contains("101")) return "Room 1";
+        if (u.contains("102")) return "Room 2";
+        if (u.contains("103")) return "Room 3";
+        if (u.contains("CRT-01")) return "Court 1";
+        if (u.contains("CRT-02")) return "Court 2";
+        if (u.contains("CRT-03") || u.contains("BK")) return "Court 3";
+        return null;
+    }
+
     @Override
     public void onRoomStatusChanged(CatalogItem item, boolean isBooked) {
-        // Status updates persist directly in ResortRepository
+        syncSupabaseFacilityState();
     }
 
     @Override
@@ -146,9 +238,9 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
         super.onResume();
         loadHeaderAvatar();
         loadRoomsList();
+        syncSupabaseFacilityState();
     }
 
-    // Loads saved Super Admin profile image into header avatar circle
     private void loadHeaderAvatar() {
         if (getView() == null || getContext() == null) return;
         ImageView imgAvatar = getView().findViewById(R.id.imgHeaderAvatarRooms);
@@ -163,6 +255,6 @@ public class SuperAdminRoomsFragment extends Fragment implements SuperAdminRoomA
             }
         }
 
-        AvatarHelper.loadAvatar(getContext(), imgAvatar, null, "Juan Dela Cruz");
+        AvatarHelper.loadAvatar(getContext(), imgAvatar, null, "Dr. Lemyel Yap");
     }
 }

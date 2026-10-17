@@ -27,6 +27,9 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
 
+        // Purge & truncate all Supabase bookings & payments for clean walkthrough testing
+        com.example.casavista.network.SupabaseClient.getInstance().purgeAndResetAllBookingsAndPayments(this, null);
+
         // Bind layout views
         LinearLayout brandContainer = findViewById(R.id.brandContainer);
         ImageView ivSplashLogo = findViewById(R.id.ivSplashLogo);

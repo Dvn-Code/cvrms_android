@@ -269,6 +269,8 @@ CREATE TABLE IF NOT EXISTS resort.customer (
     email character varying(120),
     phone character varying(20) NOT NULL,
     address character varying(255),
+    birthdate character varying(30),
+    gender character varying(30),
     customer_type character varying(20) DEFAULT 'Registered'::character varying NOT NULL,
     middle_name character varying(50),
     CONSTRAINT chk_customer_profile_completeness CHECK ((((customer_type)::text = 'Walk-In'::text) OR ((email IS NOT NULL) AND (phone IS NOT NULL) AND (address IS NOT NULL)))),

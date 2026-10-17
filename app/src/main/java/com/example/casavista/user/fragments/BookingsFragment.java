@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.casavista.R;
 import com.example.casavista.adapters.BookingAdapter;
 import com.example.casavista.data.ResortRepository;
+import com.example.casavista.models.CatalogItem;
 import com.example.casavista.user.MainActivity;
 import com.google.android.material.button.MaterialButton;
 
@@ -32,6 +33,7 @@ public class BookingsFragment extends Fragment {
     private RecyclerView rvBookings;
     private MaterialButton tabUpcoming, tabPast, tabCancelled;
     private String currentTab = "Upcoming";
+    private boolean isFetchingBookings = false;
 
     @Nullable
     @Override
@@ -69,7 +71,6 @@ public class BookingsFragment extends Fragment {
             loadBookings("Cancelled");
         });
 
-        loadBookings("Upcoming");
         loadHeaderProfile(view);
 
         View cardAvatar = view.findViewById(R.id.cardBookingsAvatar);
@@ -91,8 +92,6 @@ public class BookingsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         loadHeaderProfile(getView());
-
-        // Auto-refresh the current tab list when returning to this screen
         loadBookings(currentTab);
     }
 
@@ -118,7 +117,13 @@ public class BookingsFragment extends Fragment {
             }
         }
 
-        File file = new File(requireContext().getFilesDir(), "profile_pic.jpg");
+        String email = prefs.getString("user_email", "");
+        String emailCleanKey = email.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+
+        File file = new File(requireContext().getFilesDir(), "profile_pic_" + emailCleanKey + ".jpg");
+        if (!file.exists()) {
+            file = new File(requireContext().getFilesDir(), "profile_pic.jpg");
+        }
         if (file.exists()) {
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             if (bitmap != null) {
@@ -145,93 +150,249 @@ public class BookingsFragment extends Fragment {
 
     private void loadBookings(String type) {
         currentTab = type;
-        if (repository != null && rvBookings != null && getContext() != null) {
-            // Load persistent local bookings first
-            repository.loadSavedBookings(requireContext());
-            BookingAdapter localAdapter = new BookingAdapter(repository.getBookings(type));
-            rvBookings.setAdapter(localAdapter);
+        if (repository == null || rvBookings == null || getContext() == null) return;
 
-            // Fetch live database bookings from FastAPI / Supabase
-            com.example.casavista.network.SupabaseClient.getInstance().fetchBookings(
+        // 1. Display persistent local bookings immediately (with Catalog images loaded)
+        repository.loadSavedImages(requireContext());
+        repository.loadSavedBookings(requireContext());
+        BookingAdapter localAdapter = new BookingAdapter(repository.getBookings(type));
+        rvBookings.setAdapter(localAdapter);
+
+        if (isFetchingBookings) return;
+        isFetchingBookings = true;
+
+        SharedPreferences prefs = requireContext().getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
+        String currentUserEmail = prefs.getString("user_email", "").trim();
+        String emailCleanKey = currentUserEmail.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+        String currentCustId = prefs.getString("customer_id", prefs.getString("customer_id_" + emailCleanKey, "")).trim();
+
+        // If customer_id is missing after logout/login, fetch customer profile by email first
+        if (currentCustId.isEmpty() && !currentUserEmail.isEmpty()) {
+            com.example.casavista.network.SupabaseClient.getInstance().fetchCustomerProfile(
+                    currentUserEmail,
                     new com.example.casavista.network.SupabaseClient.DataCallback() {
                         @Override
-                        public void onSuccess(String jsonArrayString) {
-                            if (getContext() == null || jsonArrayString == null) return;
-                            try {
-                                org.json.JSONArray array = new org.json.JSONArray(jsonArrayString);
-                                SharedPreferences prefs = requireContext().getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
-                                String currentCustId = prefs.getString("customer_id", "CUST-101");
-
-                                for (int i = 0; i < array.length(); i++) {
-                                    org.json.JSONObject obj = array.getJSONObject(i);
-                                    String bCustId = obj.optString("customer_id", "");
-
-                                    // Filter by current logged in customer or match active session
-                                    if (bCustId.isEmpty() || bCustId.equalsIgnoreCase(currentCustId) || bCustId.equalsIgnoreCase("CUST-101")) {
-                                        String bId = obj.optString("booking_id", "BK-" + i);
-                                        String bStatus = obj.optString("status", "Pending");
-                                        String bDate = obj.optString("booking_date", obj.optString("check_in_date", "2026-08-20"));
-                                        String courtId = obj.optString("court_id", "");
-                                        String roomId = obj.optString("room_id", "");
-
-                                        String title = !courtId.isEmpty() && !"null".equalsIgnoreCase(courtId)
-                                                ? "Court Reservation • " + courtId
-                                                : "Resort Accommodation • " + roomId;
-
-                                        String startTime = obj.optString("start_time", "");
-                                        String endTime = obj.optString("end_time", "");
-                                        String d1 = (!startTime.isEmpty() && !"null".equalsIgnoreCase(startTime))
-                                                ? "SLOT: " + startTime + " - " + endTime
-                                                : "CHECK-IN: " + obj.optString("check_in_date", "2026-08-20");
-
-                                        String d2 = "Pending".equalsIgnoreCase(bStatus)
-                                                ? "Hold active (15-min window)"
-                                                : "Status: " + bStatus;
-
-                                        int imgRes = !courtId.isEmpty() && !"null".equalsIgnoreCase(courtId)
-                                                ? R.drawable.pickleball_icon_img
-                                                : R.drawable.rooms_icon_img;
-
-                                        com.example.casavista.models.Booking b = new com.example.casavista.models.Booking(
-                                                title, bStatus, bDate, d1, d2, "₱400", null, imgRes
-                                        );
-                                        b.setBookingId(bId);
-
-                                        // Merge into local repository
-                                        boolean exists = false;
-                                        for (com.example.casavista.models.Booking existing : repository.getBookings()) {
-                                            if (bId.equalsIgnoreCase(existing.getBookingId())) {
-                                                existing.setStatus(bStatus);
-                                                exists = true;
-                                                break;
-                                            }
-                                        }
-                                        if (!exists) {
-                                            repository.addBooking(requireContext(), b);
-                                        }
+                        public void onSuccess(String jsonStr) {
+                            if (getContext() != null && jsonStr != null) {
+                                try {
+                                    org.json.JSONObject custObj = new org.json.JSONObject(jsonStr);
+                                    String dbCustId = custObj.optString("customer_id", "");
+                                    if (!dbCustId.isEmpty()) {
+                                        prefs.edit()
+                                                .putString("customer_id", dbCustId)
+                                                .putString("customer_id_" + emailCleanKey, dbCustId)
+                                                .apply();
                                     }
-                                }
-
-                                BookingAdapter liveAdapter = new BookingAdapter(repository.getBookings(type));
-                                rvBookings.setAlpha(0f);
-                                rvBookings.setAdapter(liveAdapter);
-                                rvBookings.animate().alpha(1f).setDuration(220).start();
-
-                            } catch (Exception e) {
-                                // Fallback to local
-                                BookingAdapter adapter = new BookingAdapter(repository.getBookings(type));
-                                rvBookings.setAdapter(adapter);
+                                } catch (Exception ignored) {}
                             }
+                            fetchAndMergeLiveBookings(type);
                         }
 
                         @Override
                         public void onError(String errorMessage) {
-                            // Fallback to local repository
-                            BookingAdapter adapter = new BookingAdapter(repository.getBookings(type));
-                            rvBookings.setAdapter(adapter);
+                            fetchAndMergeLiveBookings(type);
                         }
                     }
             );
+        } else {
+            fetchAndMergeLiveBookings(type);
+        }
+    }
+
+    private CatalogItem findMatchingCatalogItem(String title, String roomId, String courtId, boolean isExclusive) {
+        if (repository == null) return null;
+        String normTarget = repository.getNormalizedFacilityKey(
+                isExclusive ? "Full Resort Buyout" : (!roomId.isEmpty() && !"null".equalsIgnoreCase(roomId) ? roomId : (!courtId.isEmpty() && !"null".equalsIgnoreCase(courtId) ? courtId : title))
+        );
+        for (CatalogItem item : repository.getCatalogItems()) {
+            if (item == null || item.getTitle() == null) continue;
+            if (item.getTitle().equalsIgnoreCase(title)) {
+                return item;
+            }
+            String normItem = repository.getNormalizedFacilityKey(item.getTitle());
+            if (!normTarget.isEmpty() && normTarget.equalsIgnoreCase(normItem)) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    private void fetchAndMergeLiveBookings(String type) {
+        com.example.casavista.network.SupabaseClient.getInstance().fetchBookings(
+                new com.example.casavista.network.SupabaseClient.DataCallback() {
+                    @Override
+                    public void onSuccess(String jsonArrayString) {
+                        isFetchingBookings = false;
+                        if (getContext() == null || jsonArrayString == null) return;
+                        try {
+                            repository.loadSavedImages(requireContext());
+
+                            org.json.JSONArray array = new org.json.JSONArray(jsonArrayString);
+                            SharedPreferences prefs = requireContext().getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
+                            String currentUserEmail = prefs.getString("user_email", "").trim();
+                            String emailCleanKey = currentUserEmail.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+                            String currentCustId = prefs.getString("customer_id", prefs.getString("customer_id_" + emailCleanKey, "")).trim();
+                            String lastBookingId = prefs.getString("last_booking_id", "").trim();
+
+                            // Iterate from oldest to newest so addBooking(0, b) keeps newest on top
+                            for (int i = array.length() - 1; i >= 0; i--) {
+                                org.json.JSONObject obj = array.getJSONObject(i);
+                                String bCustId = obj.optString("customer_id", "").trim();
+                                String bCustEmail = obj.optString("customer_email", "").trim();
+                                String bId = obj.optString("booking_id", "").trim();
+                                if (bId.isEmpty()) continue;
+
+                                boolean isLocalBooking = false;
+                                for (com.example.casavista.models.Booking localB : repository.getBookings()) {
+                                    if (bId.equalsIgnoreCase(localB.getBookingId())) {
+                                        isLocalBooking = true;
+                                        break;
+                                    }
+                                }
+
+                                boolean matchesCustId = !currentCustId.isEmpty() && bCustId.equalsIgnoreCase(currentCustId);
+                                boolean matchesEmail = !currentUserEmail.isEmpty() && (
+                                        bCustEmail.equalsIgnoreCase(currentUserEmail)
+                                                || bCustId.equalsIgnoreCase(currentUserEmail)
+                                                || (!bCustEmail.isEmpty() && bCustEmail.split("@")[0].equalsIgnoreCase(currentUserEmail.split("@")[0]))
+                                );
+                                boolean matchesLastBooking = !lastBookingId.isEmpty() && bId.equalsIgnoreCase(lastBookingId);
+
+                                if (matchesCustId || matchesEmail || matchesLastBooking || isLocalBooking) {
+                                    // Persist customer_id for future sessions if matched by email
+                                    if (!bCustId.isEmpty() && matchesEmail && currentCustId.isEmpty()) {
+                                        currentCustId = bCustId;
+                                        prefs.edit()
+                                                .putString("customer_id", bCustId)
+                                                .putString("customer_id_" + emailCleanKey, bCustId)
+                                                .apply();
+                                    }
+
+                                    String bStatus = obj.optString("status", "Pending");
+                                    String bDate = obj.optString("booking_date", obj.optString("check_in_date", "2026-10-14"));
+                                    String courtId = obj.optString("court_id", "");
+                                    String roomId = obj.optString("room_id", "");
+                                    boolean isExclusive = obj.optBoolean("exclusive", false);
+                                    double totalAmt = obj.optDouble("total_amount", 2500.0);
+
+                                    String checkInDate = obj.optString("check_in_date", "");
+                                    String checkOutDate = obj.optString("check_out_date", "");
+
+                                    boolean hasCourt = !courtId.isEmpty() && !"null".equalsIgnoreCase(courtId);
+                                    String title;
+                                    int imgRes;
+
+                                    if (hasCourt) {
+                                        if (courtId.toUpperCase().contains("BK")) {
+                                            title = "Basketball • Basketball Half-Court";
+                                            imgRes = R.drawable.basketball_icon_img;
+                                        } else if (courtId.contains("2")) {
+                                            title = "Pickleball • Court 2";
+                                            imgRes = R.drawable.pickleball_icon_img;
+                                        } else if (courtId.contains("3")) {
+                                            title = "Pickleball • Court 3";
+                                            imgRes = R.drawable.pickleball_icon_img;
+                                        } else {
+                                            title = "Pickleball • Court 1";
+                                            imgRes = R.drawable.pickleball_icon_img;
+                                        }
+                                        if (totalAmt <= 0) totalAmt = 400.0;
+                                    } else if (isExclusive) {
+                                        title = "Whole-Resort Private Buyout";
+                                        imgRes = R.drawable.resort_icon_img;
+                                        if (totalAmt <= 0) totalAmt = 12000.0;
+                                    } else {
+                                        if (roomId.contains("102")) {
+                                            title = "Standard Villa Suite 102";
+                                            if (totalAmt < 1000.0) totalAmt = 2500.0;
+                                        } else if (roomId.contains("103")) {
+                                            title = "Deluxe Family Suite 103";
+                                            if (totalAmt < 1000.0) totalAmt = 3500.0;
+                                        } else {
+                                            title = "Standard Villa Suite 101";
+                                            if (totalAmt < 1000.0) totalAmt = 2500.0;
+                                        }
+                                        imgRes = R.drawable.rooms_icon_img;
+                                    }
+
+                                    // Match Catalog item image so Bookings card uses the exact same background picture as Catalog
+                                    String catalogImgUrl = null;
+                                    CatalogItem matchedCatalog = findMatchingCatalogItem(title, roomId, courtId, isExclusive);
+                                    if (matchedCatalog != null) {
+                                        if (matchedCatalog.getImageUrl() != null && !matchedCatalog.getImageUrl().trim().isEmpty()) {
+                                            catalogImgUrl = matchedCatalog.getImageUrl();
+                                        }
+                                        if (matchedCatalog.getImageResId() != 0) {
+                                            imgRes = matchedCatalog.getImageResId();
+                                        }
+                                    }
+
+                                    String startTime = obj.optString("start_time", "");
+                                    String endTime = obj.optString("end_time", "");
+
+                                    String d1;
+                                    if (!startTime.isEmpty() && !"null".equalsIgnoreCase(startTime)) {
+                                        d1 = "SLOT: " + formatSlotDisplay(startTime, endTime);
+                                    } else if (!checkInDate.isEmpty() && !"null".equalsIgnoreCase(checkInDate)) {
+                                        d1 = "IN: " + checkInDate + " • OUT: " + checkOutDate;
+                                    } else {
+                                        d1 = "DATE: " + bDate;
+                                    }
+
+                                    String d2 = "Pending".equalsIgnoreCase(bStatus)
+                                            ? "Hold active (15-min window)"
+                                            : "Status: " + bStatus;
+
+                                    String formattedPrice = String.format(java.util.Locale.US, "₱%,.2f", totalAmt);
+
+                                    com.example.casavista.models.Booking b = new com.example.casavista.models.Booking(
+                                            title, bStatus, bDate, d1, d2, formattedPrice, catalogImgUrl, imgRes
+                                    );
+                                    b.setBookingId(bId);
+                                    b.setCustomerId(bCustId);
+                                    b.setRoomId(roomId);
+                                    b.setCourtId(courtId);
+                                    b.setCheckInDate(checkInDate);
+                                    b.setCheckOutDate(checkOutDate);
+                                    b.setStatus(bStatus);
+                                    b.setTotalAmount(totalAmt);
+
+                                    // ResortRepository.addBooking handles deduplication & in-place updates
+                                    repository.addBooking(requireContext(), b);
+                                }
+                            }
+
+                            repository.saveBookings(requireContext());
+                            BookingAdapter liveAdapter = new BookingAdapter(repository.getBookings(currentTab));
+                            rvBookings.setAdapter(liveAdapter);
+
+                        } catch (Exception e) {
+                            BookingAdapter adapter = new BookingAdapter(repository.getBookings(currentTab));
+                            rvBookings.setAdapter(adapter);
+                        }
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        isFetchingBookings = false;
+                        if (getContext() == null || rvBookings == null) return;
+                        BookingAdapter adapter = new BookingAdapter(repository.getBookings(currentTab));
+                        rvBookings.setAdapter(adapter);
+                    }
+                }
+        );
+    }
+
+    private String formatSlotDisplay(String startTime, String endTime) {
+        try {
+            int startHr = Integer.parseInt(startTime.split(":")[0]);
+            int endHr = endTime != null && endTime.contains(":") ? Integer.parseInt(endTime.split(":")[0]) : (startHr + 1);
+            String amPm = endHr >= 12 ? "PM" : "AM";
+            int dispStart = startHr > 12 ? startHr - 12 : (startHr == 0 ? 12 : startHr);
+            int dispEnd = endHr > 12 ? endHr - 12 : (endHr == 0 ? 12 : endHr);
+            return dispStart + "-" + dispEnd + " " + amPm;
+        } catch (Exception e) {
+            return startTime + " - " + endTime;
         }
     }
 

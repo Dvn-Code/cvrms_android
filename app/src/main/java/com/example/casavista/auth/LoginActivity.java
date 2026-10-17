@@ -29,6 +29,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.casavista.R;
 import com.example.casavista.admin.AdminMainActivity;
 import com.example.casavista.data.ResortRepository;
+import com.example.casavista.helpers.ApiHelper;
 import com.example.casavista.network.SupabaseClient;
 import com.example.casavista.superadmin.SuperAdminMainActivity;
 import com.example.casavista.user.MainActivity;
@@ -42,9 +43,9 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputLayout;
 
+import org.json.JSONArray;
 import org.json.JSONObject;
 
-// Handles user sign-in, Google Sign-In SDK authentication, and role-based routing
 public class LoginActivity extends AppCompatActivity {
 
     private EditText etEmail, etPassword;
@@ -64,7 +65,6 @@ public class LoginActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        // Bind input fields and action buttons
         etEmail = findViewById(R.id.etEmail);
         etPassword = findViewById(R.id.etPassword);
         btnLogin = findViewById(R.id.btnLogin);
@@ -72,18 +72,12 @@ public class LoginActivity extends AppCompatActivity {
         btnApple = findViewById(R.id.btnApple);
         btnFacebook = findViewById(R.id.btnFacebook);
 
-        // Pre-fill default test credentials for quick testing
-        etEmail.setText("test12345@casavista.com");
-        etPassword.setText("test12345");
-
-        // Initialize Google Sign-In Client
         GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestEmail()
                 .requestProfile()
                 .build();
         googleSignInClient = GoogleSignIn.getClient(this, gso);
 
-        // Register ActivityResultLauncher for Google Sign-In flow
         googleSignInLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -97,10 +91,8 @@ public class LoginActivity extends AppCompatActivity {
                 }
         );
 
-        // Action click listeners
         btnLogin.setOnClickListener(v -> performLogin());
 
-        // Social auth click handlers with one-time Terms agreement check
         if (btnGoogle != null) {
             btnGoogle.setOnClickListener(v -> onSocialOptionClicked("Google"));
         }
@@ -111,13 +103,11 @@ public class LoginActivity extends AppCompatActivity {
             btnFacebook.setOnClickListener(v -> onSocialOptionClicked("Facebook"));
         }
 
-        // Forgot password dialog trigger
         View tvForgotPassword = findViewById(R.id.tvForgotPassword);
         if (tvForgotPassword != null) {
             tvForgotPassword.setOnClickListener(v -> showForgotPasswordDialog());
         }
 
-        // Navigate to account registration screen
         View btnGoToSignUp = findViewById(R.id.btnGoToSignUp);
         if (btnGoToSignUp != null) {
             btnGoToSignUp.setOnClickListener(v -> {
@@ -126,38 +116,30 @@ public class LoginActivity extends AppCompatActivity {
             });
         }
 
-        // Initialize background video and card collapse toggle
         setupVideoBackground();
         setupCardToggleAnimation();
     }
 
-    // Handles social option click: checks if terms were already agreed, bypassing terms modal for returning users
     private void onSocialOptionClicked(String provider) {
+        if (!"Google".equalsIgnoreCase(provider)) {
+            Toast.makeText(this, provider + " Sign-In is not enabled. Please sign in with Email/Username or Google.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
-        boolean hasAgreedTerms = prefs.getBoolean("has_agreed_terms", false)
-                || prefs.contains("user_email")
-                || prefs.contains("customer_id")
-                || prefs.contains("user_id");
+        boolean hasAgreedTerms = prefs.getBoolean("has_agreed_terms", false);
 
         if (hasAgreedTerms) {
-            // Ensure terms agreement flag is persisted for future logins
-            prefs.edit().putBoolean("has_agreed_terms", true).apply();
-
-            // User already agreed to terms in a previous session — sign in directly!
-            if ("Google".equalsIgnoreCase(provider) && googleSignInClient != null && googleSignInLauncher != null) {
+            if (googleSignInClient != null && googleSignInLauncher != null) {
                 googleSignInClient.signOut().addOnCompleteListener(task -> {
                     googleSignInLauncher.launch(googleSignInClient.getSignInIntent());
                 });
-            } else {
-                navigateToUserMain("Signed in with " + provider);
             }
         } else {
-            // First time social sign in — show Terms & Conditions agreement modal
             showSocialTermsDialog(provider);
         }
     }
 
-    // Displays Terms & Conditions agreement dialog required for first-time social registration
     private void showSocialTermsDialog(String provider) {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_terms_and_conditions, null);
 
@@ -167,9 +149,12 @@ public class LoginActivity extends AppCompatActivity {
         MaterialButton btnCloseTerms = dialogView.findViewById(R.id.btnCloseTerms);
 
         if (btnAgreeTerms != null) {
-            btnAgreeTerms.setText("Agree");
-            btnAgreeTerms.setEnabled(false);
+            btnAgreeTerms.setText("Agree & Continue");
+            btnAgreeTerms.setEnabled(true);
+            btnAgreeTerms.setAlpha(0.7f);
         }
+
+        final boolean[] scrolledToBottom = {false};
 
         AlertDialog dialog = new MaterialAlertDialogBuilder(this)
                 .setTitle(provider + " Sign-Up Terms & Privacy")
@@ -182,8 +167,11 @@ public class LoginActivity extends AppCompatActivity {
                 if (svTerms.getChildCount() > 0) {
                     View child = svTerms.getChildAt(svTerms.getChildCount() - 1);
                     int diff = (child.getBottom() - (svTerms.getHeight() + svTerms.getScrollY()));
-                    if (diff <= 30) {
-                        if (btnAgreeTerms != null) btnAgreeTerms.setEnabled(true);
+                    if (diff <= 100) {
+                        scrolledToBottom[0] = true;
+                        if (btnAgreeTerms != null) {
+                            btnAgreeTerms.setAlpha(1.0f);
+                        }
                         if (tvScrollNotice != null) {
                             tvScrollNotice.setText("✓ You have read the entire Terms & Conditions. You may now accept.");
                             tvScrollNotice.setTextColor(0xFF2E7D32);
@@ -199,15 +187,22 @@ public class LoginActivity extends AppCompatActivity {
 
         if (btnAgreeTerms != null) {
             btnAgreeTerms.setOnClickListener(v -> {
+                if (!scrolledToBottom[0] && svTerms != null && svTerms.getChildCount() > 0) {
+                    View child = svTerms.getChildAt(svTerms.getChildCount() - 1);
+                    int diff = (child.getBottom() - (svTerms.getHeight() + svTerms.getScrollY()));
+                    if (diff > 100) {
+                        Toast.makeText(this, "Please scroll to the bottom of the Terms & Conditions to agree.", Toast.LENGTH_SHORT).show();
+                        svTerms.fullScroll(View.FOCUS_DOWN);
+                        return;
+                    }
+                }
+
                 dialog.dismiss();
-                // Remember that terms have been agreed for future social sign ins
                 SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
                 prefs.edit().putBoolean("has_agreed_terms", true).apply();
 
                 if ("Google".equalsIgnoreCase(provider) && googleSignInClient != null && googleSignInLauncher != null) {
                     googleSignInLauncher.launch(googleSignInClient.getSignInIntent());
-                } else {
-                    navigateToUserMain("Signed in with " + provider);
                 }
             });
         }
@@ -215,7 +210,6 @@ public class LoginActivity extends AppCompatActivity {
         dialog.show();
     }
 
-    // Processes Google Sign-In account payload, syncs profile with backend, and saves local session
     private void handleGoogleSignInResult(Task<GoogleSignInAccount> task) {
         try {
             GoogleSignInAccount account = task.getResult(ApiException.class);
@@ -227,18 +221,16 @@ public class LoginActivity extends AppCompatActivity {
             int statusCode = e.getStatusCode();
             Log.e("LoginActivity", "Google Sign-In ApiException status code: " + statusCode);
 
-            // Attempt to check if a cached account exists on device
             GoogleSignInAccount cachedAccount = GoogleSignIn.getLastSignedInAccount(this);
             if (cachedAccount != null && cachedAccount.getEmail() != null) {
-                Toast.makeText(this, "Logged in via cached Google Account: " + cachedAccount.getEmail(), Toast.LENGTH_SHORT).show();
                 processGoogleAccountAndLogin(cachedAccount);
                 return;
             }
 
-            if (statusCode == 12501) { // User explicitly cancelled account picker
+            if (statusCode == 12501) {
                 Toast.makeText(this, "Google Sign-In was cancelled.", Toast.LENGTH_SHORT).show();
             } else {
-                showGoogleSignInErrorDialog(statusCode, e.getLocalizedMessage());
+                Toast.makeText(this, "Google Sign-In failed (Code " + statusCode + "). Please log in with your registered email/username and password.", Toast.LENGTH_LONG).show();
             }
         }
     }
@@ -266,45 +258,14 @@ public class LoginActivity extends AppCompatActivity {
         syncAndLoginGoogleUser(email, givenName, familyName);
     }
 
-    private void showGoogleSignInErrorDialog(int statusCode, String errorMsg) {
-        String detail;
-        if (statusCode == 7) { // NETWORK_ERROR
-            detail = "Network Connection Issue (Code 7: NETWORK_ERROR).\n\n"
-                    + "Google Play Services was unable to establish a secure connection to Google authentication servers.\n"
-                    + "Please ensure your device/emulator has active internet connectivity.";
-        } else if (statusCode == 10) { // DEVELOPER_ERROR
-            detail = "Google Developer Configuration Error (Code 10).\n\n"
-                    + "Please check:\n"
-                    + "1. App SHA-1 fingerprint (41:12:DE:9C:...) is added in Google Cloud Console.\n"
-                    + "2. Your friend's email is added under OAuth Consent Screen ➔ Test Users.\n"
-                    + "3. Package name matches com.example.casavista.";
-        } else if (statusCode == 12500) { // SIGN_IN_FAILED
-            detail = "Google Sign-In Failed (Code 12500).\n\n"
-                    + "Check that OAuth Consent Screen is configured in Google Cloud Console and test users are added.";
-        } else {
-            detail = "Google Sign-In Notice (Code " + statusCode + ").\n" + (errorMsg != null ? errorMsg : "");
-        }
-
-        new MaterialAlertDialogBuilder(this)
-                .setTitle("Google Auth Notice (Code " + statusCode + ")")
-                .setMessage(detail + "\n\nWould you like to log in with a Test Google Account or try again?")
-                .setPositiveButton("Use Test Google Account", (dialog, which) -> {
-                    syncAndLoginGoogleUser("google.test@casavista.com", "Google", "User");
-                })
-                .setNegativeButton("Retry", (dialog, which) -> {
-                    dialog.dismiss();
-                    if (googleSignInClient != null && googleSignInLauncher != null) {
-                        googleSignInLauncher.launch(googleSignInClient.getSignInIntent());
-                    }
-                })
-                .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();
-    }
-
     private void syncAndLoginGoogleUser(String email, String givenName, String familyName) {
+        if (email == null || email.trim().isEmpty()) {
+            Toast.makeText(this, "Google account email not available.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         final String finalFirst = givenName != null ? givenName : "Google";
         final String finalLast = familyName != null ? familyName : "User";
-        final String finalEmail = (email != null && !email.trim().isEmpty()) ? email : "google.test@casavista.com";
+        final String finalEmail = email.trim().toLowerCase();
         final String fullName = finalFirst + " " + finalLast;
 
         ProgressDialog progressDialog = new ProgressDialog(this);
@@ -312,43 +273,62 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        // Mark terms as agreed in profile preferences
-        SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
-        prefs.edit().putBoolean("has_agreed_terms", true).apply();
-
         SupabaseClient.getInstance().syncGoogleUser(
                 finalEmail,
                 finalFirst,
                 finalLast,
                 new SupabaseClient.AuthCallback() {
                     @Override
-                    public void onSuccess(String customerId, String email, JSONObject userData) {
+                    public void onSuccess(String customerId, String emailResp, JSONObject userData) {
                         if (!isFinishing() && !isDestroyed()) {
                             progressDialog.dismiss();
                         }
 
+                        if (customerId == null || customerId.isEmpty() || customerId.startsWith("local-") || customerId.startsWith("CUST-17")) {
+                            Toast.makeText(LoginActivity.this, "Could not sync Google account with server. Please try again.", Toast.LENGTH_LONG).show();
+                            return;
+                        }
+
+                        ResortRepository repo = ResortRepository.getInstance();
+                        repo.clearBookings(LoginActivity.this);
+
                         SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
-                        prefs.edit()
+                        String emailCleanKey = finalEmail.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+
+                        SharedPreferences.Editor editor = prefs.edit()
                                 .putString("user_id", customerId)
                                 .putString("customer_id", customerId)
+                                .putString("customer_id_" + emailCleanKey, customerId)
                                 .putString("user_name", fullName)
+                                .putString("user_name_" + emailCleanKey, fullName)
                                 .putString("user_first_name", finalFirst)
                                 .putString("user_last_name", finalLast)
                                 .putString("user_email", finalEmail)
                                 .putBoolean("is_logged_in", true)
-                                .putBoolean("has_agreed_terms", true)
-                                .apply();
+                                .putBoolean("has_agreed_terms", true);
 
-                        ResortRepository repo = ResortRepository.getInstance();
+                        if (userData != null) {
+                            String phoneFromDb = userData.optString("phone", "");
+                            String addressFromDb = userData.optString("address", "");
+                            if (addressFromDb.contains("||CVAUTH:")) {
+                                addressFromDb = addressFromDb.split("\\|\\|CVAUTH:")[0].trim();
+                            }
+                            if (!phoneFromDb.isEmpty() && !"N/A".equals(phoneFromDb)) {
+                                editor.putString("user_phone", phoneFromDb);
+                                editor.putString("user_phone_" + emailCleanKey, phoneFromDb);
+                            }
+                            if (!addressFromDb.isEmpty() && !"N/A".equals(addressFromDb)) {
+                                editor.putString("user_address", addressFromDb);
+                                editor.putString("user_address_" + emailCleanKey, addressFromDb);
+                            }
+                        }
+                        editor.apply();
+
                         repo.setCurrentUserName(fullName);
                         repo.setCurrentUserEmail(finalEmail);
 
-                        Toast.makeText(LoginActivity.this, "Welcome to CasaVista, " + finalFirst + "!", Toast.LENGTH_SHORT).show();
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
+                        Toast.makeText(LoginActivity.this, "Welcome to CasaVista, " + finalFirst + " (" + customerId + ")!", Toast.LENGTH_SHORT).show();
+                        navigateBasedOnRole("USER");
                     }
 
                     @Override
@@ -356,34 +336,16 @@ public class LoginActivity extends AppCompatActivity {
                         if (!isFinishing() && !isDestroyed()) {
                             progressDialog.dismiss();
                         }
-                        Toast.makeText(LoginActivity.this, "Notice: " + errorMessage + ". Logged in locally.", Toast.LENGTH_SHORT).show();
-
-                        SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
-                        prefs.edit()
-                                .putString("user_id", "local-" + System.currentTimeMillis())
-                                .putString("customer_id", "local-" + System.currentTimeMillis())
-                                .putString("user_name", fullName)
-                                .putString("user_first_name", finalFirst)
-                                .putString("user_last_name", finalLast)
-                                .putString("user_email", finalEmail)
-                                .putBoolean("is_logged_in", true)
-                                .putBoolean("has_agreed_terms", true)
-                                .apply();
-
-                        ResortRepository repo = ResortRepository.getInstance();
-                        repo.setCurrentUserName(fullName);
-                        repo.setCurrentUserEmail(finalEmail);
-
-                        Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        finish();
+                        new MaterialAlertDialogBuilder(LoginActivity.this)
+                                .setTitle("Google Sign-In Sync Error")
+                                .setMessage("Could not verify your Google account with the server:\n" + errorMessage)
+                                .setPositiveButton("OK", null)
+                                .show();
                     }
                 }
         );
     }
 
-    // Displays popup dialog for password reset link requests
     private void showForgotPasswordDialog() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_forgot_password, null);
         TextInputLayout tilResetEmail = dialogView.findViewById(R.id.tilResetEmail);
@@ -411,24 +373,20 @@ public class LoginActivity extends AppCompatActivity {
                 .show();
     }
 
-    // Handles swipe gestures and tap triggers to collapse or restore the login form
     private void setupCardToggleAnimation() {
         bottomCard = findViewById(R.id.bottomCard);
         layoutHeroBrand = findViewById(R.id.layoutHeroBrand);
         layoutTopDragHandle = findViewById(R.id.layoutTopDragHandle);
         btnHoveringExpand = findViewById(R.id.btnHoveringExpand);
 
-        // Tap top handle to collapse form
         if (layoutTopDragHandle != null) {
             layoutTopDragHandle.setOnClickListener(v -> collapseLoginForm());
         }
 
-        // Tap hovering button at bottom to reopen form
         if (btnHoveringExpand != null) {
             btnHoveringExpand.setOnClickListener(v -> expandLoginForm());
         }
 
-        // Swipe down gesture detector on login card
         GestureDetector gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
             @Override
             public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
@@ -453,10 +411,8 @@ public class LoginActivity extends AppCompatActivity {
 
     private void collapseLoginForm() {
         if (bottomCard == null || isCardCollapsed) return;
-
         isCardCollapsed = true;
 
-        // Slide the full login form completely off-screen
         float slideDistance = bottomCard.getHeight() + 300f;
         bottomCard.animate()
                 .translationY(slideDistance)
@@ -464,7 +420,6 @@ public class LoginActivity extends AppCompatActivity {
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
 
-        // Move hero logo down slightly
         if (layoutHeroBrand != null) {
             layoutHeroBrand.animate()
                     .translationY(60f)
@@ -473,7 +428,6 @@ public class LoginActivity extends AppCompatActivity {
                     .start();
         }
 
-        // Show hovering arrow pill button at bottom
         if (btnHoveringExpand != null) {
             btnHoveringExpand.setAlpha(0f);
             btnHoveringExpand.setVisibility(View.VISIBLE);
@@ -486,17 +440,14 @@ public class LoginActivity extends AppCompatActivity {
 
     private void expandLoginForm() {
         if (bottomCard == null || !isCardCollapsed) return;
-
         isCardCollapsed = false;
 
-        // Slide full login form back up into view
         bottomCard.animate()
                 .translationY(0f)
                 .setDuration(380)
                 .setInterpolator(new DecelerateInterpolator())
                 .start();
 
-        // Restore hero logo position
         if (layoutHeroBrand != null) {
             layoutHeroBrand.animate()
                     .translationY(0f)
@@ -505,7 +456,6 @@ public class LoginActivity extends AppCompatActivity {
                     .start();
         }
 
-        // Hide hovering arrow pill button
         if (btnHoveringExpand != null) {
             btnHoveringExpand.animate()
                     .alpha(0f)
@@ -515,7 +465,6 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // Loads looping resort background video from res/raw and scales TextureView to fit the entire screen
     private void setupVideoBackground() {
         textureBgLogin = findViewById(R.id.videoBgLogin);
         if (textureBgLogin == null) return;
@@ -605,60 +554,225 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    // Validates entered email address and determines account role
-    private void performLogin() {
-        String email = etEmail.getText() != null ? etEmail.getText().toString().trim().toLowerCase() : "";
+    private void saveStaffSession(String staffId, String fullName, String email, String role) {
+        ResortRepository repo = ResortRepository.getInstance();
+        repo.setCurrentUserName(fullName);
+        repo.setCurrentUserEmail(email);
 
-        if (email.isEmpty()) {
-            Toast.makeText(this, "Please enter an email address", Toast.LENGTH_SHORT).show();
+        SharedPreferences adminPrefs = getSharedPreferences("AdminPrefs", MODE_PRIVATE);
+        adminPrefs.edit()
+                .putString("staff_id", staffId)
+                .putString("staff_name", fullName)
+                .putString("staff_email", email)
+                .putString("staff_role", role)
+                .putBoolean("is_admin_logged_in", true)
+                .apply();
+
+        // Ensure staff record exists in Supabase resort.staff table for POS/Booking foreign key integrity
+        String[] parts = fullName.trim().split("\\s+", 2);
+        String firstName = parts.length > 0 ? parts[0] : "Staff";
+        String lastName = parts.length > 1 ? parts[1] : "Member";
+        SupabaseClient.getInstance().createStaffMember(staffId, firstName, null, lastName, role, new SupabaseClient.DataCallback() {
+            @Override
+            public void onSuccess(String jsonArrayString) {}
+            @Override
+            public void onError(String errorMessage) {}
+        });
+    }
+
+    private boolean isValidStaffPassword(String roleKey, String password) {
+        if (password == null) return false;
+        if (password.equals("admin123") || password.equals("Admin123!") || password.equals("Staff123!")) {
+            return true;
+        }
+        switch (roleKey) {
+            case "Manager":
+                return password.equals("manager123") || password.equals("Manager123!");
+            case "Front Desk":
+                return password.equals("frontdesk123") || password.equals("FrontDesk123!");
+            case "Cashier":
+                return password.equals("cashier123") || password.equals("Cashier123!");
+            default:
+                return false;
+        }
+    }
+
+    private void performLogin() {
+        String identifier = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
+        String password = etPassword.getText() != null ? etPassword.getText().toString() : "";
+
+        if (identifier.isEmpty()) {
+            etEmail.setError("Please enter your username or email");
+            Toast.makeText(this, "Please enter your username or email", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String fullEmail = email.contains("@") ? email : email + "@casavista.com";
-        String firstName = fullEmail.split("@")[0];
-
-        // Save active user profile and sync with Supabase backend
-        getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE).edit()
-                .putString("user_id", "CUST-" + System.currentTimeMillis())
-                .putString("customer_id", "CUST-" + System.currentTimeMillis())
-                .putString("user_email", fullEmail)
-                .putString("user_first_name", firstName)
-                .putString("user_last_name", "User")
-                .putString("user_name", firstName + " User")
-                .putBoolean("is_logged_in", true)
-                .putBoolean("has_agreed_terms", true)
-                .apply();
-
-        ResortRepository repo = ResortRepository.getInstance();
-        repo.setCurrentUserName(firstName + " User");
-        repo.setCurrentUserEmail(fullEmail);
-
-        com.example.casavista.helpers.ApiHelper.syncCustomerToDatabase(
-                this,
-                fullEmail,
-                firstName,
-                "User",
-                "09123456789",
-                "Cebu City",
-                null
-        );
-
-        // Determine user role based on email keyword
-        String role = "USER";
-        if (email.contains("superadmin") || email.contains("super")) {
-            role = "SUPER_ADMIN";
-            Toast.makeText(this, "Welcome Super Admin!", Toast.LENGTH_SHORT).show();
-        } else if (email.contains("admin")) {
-            role = "ADMIN";
-            Toast.makeText(this, "Welcome to Admin Dashboard!", Toast.LENGTH_SHORT).show();
-        } else {
-            Toast.makeText(this, "Welcome back to CasaVista!", Toast.LENGTH_SHORT).show();
+        if (password.isEmpty()) {
+            etPassword.setError("Please enter your password");
+            Toast.makeText(this, "Please enter your password", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        navigateBasedOnRole(role);
+        String lowerIdent = identifier.toLowerCase();
+
+        // 1. SuperAdmin Login Check
+        if ((lowerIdent.equals("superadmin") || lowerIdent.equals("superadmin@casavista.com"))
+                && (password.equals("superadmin123") || password.equals("SuperAdmin123!"))) {
+            Toast.makeText(this, "Welcome Super Admin!", Toast.LENGTH_SHORT).show();
+            navigateBasedOnRole("SUPER_ADMIN");
+            return;
+        }
+        // Check SuperAdmin-managed Staff Accounts in EmployeeRepository (supports custom usernames & passwords)
+        com.example.casavista.models.Employee matchedStaff =
+                com.example.casavista.data.EmployeeRepository.getInstance().authenticateStaff(this, identifier, password);
+        if (matchedStaff != null) {
+            saveStaffSession(matchedStaff.getStaffId(), matchedStaff.getName(), matchedStaff.getEmail(), matchedStaff.getRole());
+            Toast.makeText(this, "Welcome " + matchedStaff.getName() + " (" + matchedStaff.getRole() + ")!", Toast.LENGTH_SHORT).show();
+            navigateBasedOnRole("ADMIN");
+            return;
+        }
+        // 2. Built-in Unified @casavista.com Staff Accounts (Admin, Manager, Front Desk, Cashier)
+        if (lowerIdent.equals("admin") || lowerIdent.equals("admin@casavista.com")) {
+            if (isValidStaffPassword("Admin", password)) {
+                saveStaffSession("STF-001", "Juan Dela Cruz", "admin@casavista.com", "Admin");
+                Toast.makeText(this, "Welcome Head Administrator!", Toast.LENGTH_SHORT).show();
+                navigateBasedOnRole("ADMIN");
+                return;
+            }
+        } else if (lowerIdent.equals("manager") || lowerIdent.equals("manager@casavista.com")) {
+            if (isValidStaffPassword("Manager", password)) {
+                saveStaffSession("STF-002", "Maria Clara Santos", "manager@casavista.com", "Manager");
+                Toast.makeText(this, "Welcome Resort Manager!", Toast.LENGTH_SHORT).show();
+                navigateBasedOnRole("ADMIN");
+                return;
+            }
+        } else if (lowerIdent.equals("frontdesk") || lowerIdent.equals("frontdesk@casavista.com")) {
+            if (isValidStaffPassword("Front Desk", password)) {
+                saveStaffSession("STF-003", "Angela Reyes", "frontdesk@casavista.com", "Front Desk");
+                Toast.makeText(this, "Welcome Front Desk Officer!", Toast.LENGTH_SHORT).show();
+                navigateBasedOnRole("ADMIN");
+                return;
+            }
+        } else if (lowerIdent.equals("cashier") || lowerIdent.equals("cashier@casavista.com")) {
+            if (isValidStaffPassword("Cashier", password)) {
+                saveStaffSession("STF-004", "Carlo Mendoza", "cashier@casavista.com", "Cashier");
+                Toast.makeText(this, "Welcome Billing Cashier!", Toast.LENGTH_SHORT).show();
+                navigateBasedOnRole("ADMIN");
+                return;
+            }
+        }
+
+        // 3. Dynamic Staff Login for any @casavista.com staff email or STF-XXX ID from resort.staff table
+        if (lowerIdent.endsWith("@casavista.com") || lowerIdent.startsWith("stf-")) {
+            ProgressDialog staffDialog = new ProgressDialog(this);
+            staffDialog.setMessage("Verifying CasaVista Staff credentials...");
+            staffDialog.setCancelable(false);
+            staffDialog.show();
+            btnLogin.setEnabled(false);
+
+            SupabaseClient.getInstance().fetchStaffMembers(new SupabaseClient.DataCallback() {
+                @Override
+                public void onSuccess(String jsonArrayString) {
+                    try {
+                        JSONArray staffArray = new JSONArray(jsonArrayString);
+                        for (int i = 0; i < staffArray.length(); i++) {
+                            JSONObject s = staffArray.getJSONObject(i);
+                            String sId = s.optString("staff_id", "STF-001");
+                            String fName = s.optString("first_name", "Staff");
+                            String lName = s.optString("last_name", "Member");
+                            String role = s.optString("role", "Front Desk");
+                            String fullName = (fName + " " + lName).trim();
+
+                            String generatedEmail1 = (fName.toLowerCase().replaceAll("\\s+", "") + "." + lName.toLowerCase().replaceAll("\\s+", "") + "@casavista.com");
+                            String generatedEmail2 = (fName.toLowerCase().replaceAll("\\s+", "") + "@casavista.com");
+                            String generatedEmail3 = (sId.toLowerCase() + "@casavista.com");
+
+                            boolean matchesStaff = lowerIdent.equalsIgnoreCase(sId)
+                                    || lowerIdent.equalsIgnoreCase(generatedEmail1)
+                                    || lowerIdent.equalsIgnoreCase(generatedEmail2)
+                                    || lowerIdent.equalsIgnoreCase(generatedEmail3);
+
+                            if (matchesStaff && isValidStaffPassword(role, password)) {
+                                if (!isFinishing() && !isDestroyed()) staffDialog.dismiss();
+                                btnLogin.setEnabled(true);
+                                String finalStaffEmail = lowerIdent.contains("@") ? lowerIdent : generatedEmail1;
+                                saveStaffSession(sId, fullName, finalStaffEmail, role);
+                                Toast.makeText(LoginActivity.this, "Welcome " + fullName + " (" + role + ")!", Toast.LENGTH_SHORT).show();
+                                navigateBasedOnRole("ADMIN");
+                                return;
+                            }
+                        }
+                    } catch (Exception ignored) {}
+
+                    if (!isFinishing() && !isDestroyed()) staffDialog.dismiss();
+                    proceedWithCustomerLogin(identifier, password);
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    if (!isFinishing() && !isDestroyed()) staffDialog.dismiss();
+                    proceedWithCustomerLogin(identifier, password);
+                }
+            });
+            return;
+        }
+
+        proceedWithCustomerLogin(identifier, password);
     }
 
-    // Launches the appropriate main activity based on user role
+    private void proceedWithCustomerLogin(String identifier, String password) {
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Verifying credentials...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        btnLogin.setEnabled(false);
+
+        ApiHelper.loginCustomerAccount(
+                this,
+                identifier,
+                password,
+                new ApiHelper.ApiCallback() {
+                    @Override
+                    public void onSuccess(JSONObject response) {
+                        if (!isFinishing() && !isDestroyed()) {
+                            progressDialog.dismiss();
+                        }
+                        btnLogin.setEnabled(true);
+
+                        ResortRepository repo = ResortRepository.getInstance();
+                        repo.clearBookings(LoginActivity.this);
+
+                        String custId = response.optString("customer_id", "");
+                        String firstName = response.optString("first_name", "Guest");
+                        String lastName = response.optString("last_name", "User");
+                        String email = response.optString("email", identifier);
+                        String fullName = firstName + " " + lastName;
+
+                        repo.setCurrentUserName(fullName);
+                        repo.setCurrentUserEmail(email);
+
+                        Toast.makeText(LoginActivity.this, "Welcome back, " + firstName + " (" + custId + ")!", Toast.LENGTH_SHORT).show();
+                        navigateBasedOnRole("USER");
+                    }
+
+                    @Override
+                    public void onError(String errorMessage) {
+                        if (!isFinishing() && !isDestroyed()) {
+                            progressDialog.dismiss();
+                        }
+                        btnLogin.setEnabled(true);
+
+                        new MaterialAlertDialogBuilder(LoginActivity.this)
+                                .setTitle("Login Failed")
+                                .setMessage(errorMessage != null ? errorMessage : "Invalid username/email or password. Please register an account first.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                    }
+                }
+        );
+    }
+
     private void navigateBasedOnRole(String role) {
         Intent intent;
         switch (role.toUpperCase()) {
@@ -668,18 +782,12 @@ public class LoginActivity extends AppCompatActivity {
             case "ADMIN":
                 intent = new Intent(LoginActivity.this, AdminMainActivity.class);
                 break;
-            default: // Guest User
+            default:
                 intent = new Intent(LoginActivity.this, MainActivity.class);
                 break;
         }
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-    }
-
-    // Quick helper for social sign-in option clicks
-    private void navigateToUserMain(String message) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        navigateBasedOnRole("USER");
     }
 }

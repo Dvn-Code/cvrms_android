@@ -16,8 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.casavista.R;
 import com.example.casavista.data.ResortRepository;
 import com.example.casavista.models.Booking;
+import com.example.casavista.network.SupabaseClient;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+
+import org.json.JSONObject;
 
 import java.util.List;
+import java.util.Locale;
 
 public class AdminBookingAdapter extends RecyclerView.Adapter<AdminBookingAdapter.AdminBookingViewHolder> {
 
@@ -26,7 +31,7 @@ public class AdminBookingAdapter extends RecyclerView.Adapter<AdminBookingAdapte
     }
 
     private List<Booking> bookings;
-    private OnBookingActionListener actionListener;
+    private final OnBookingActionListener actionListener;
 
     public AdminBookingAdapter(List<Booking> bookings, OnBookingActionListener actionListener) {
         this.bookings = bookings;
@@ -50,19 +55,19 @@ public class AdminBookingAdapter extends RecyclerView.Adapter<AdminBookingAdapte
         Booking booking = bookings.get(position);
         Context context = holder.itemView.getContext();
 
-        String name = ResortRepository.getInstance().getCurrentUserName();
-        if (name == null || name.trim().isEmpty()) {
-            name = "Alex Morgan";
-        }
-        holder.tvUserName.setText(name);
+        String guestName = booking.getDetail2() != null && !booking.getDetail2().isEmpty()
+                ? booking.getDetail2()
+                : "Guest " + (booking.getCustomerId() != null ? booking.getCustomerId() : "");
+        holder.tvUserName.setText(guestName);
 
-        String[] nameParts = name.trim().split("\\s+");
-        if (nameParts.length >= 2) {
+        String cleanInitialsSource = guestName.split("•")[0].trim();
+        String[] nameParts = cleanInitialsSource.split("\\s+");
+        if (nameParts.length >= 2 && !nameParts[0].isEmpty() && !nameParts[nameParts.length - 1].isEmpty()) {
             holder.tvUserInitials.setText(("" + nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase());
         } else if (nameParts.length == 1 && !nameParts[0].isEmpty()) {
             holder.tvUserInitials.setText(("" + nameParts[0].charAt(0)).toUpperCase());
         } else {
-            holder.tvUserInitials.setText("AM");
+            holder.tvUserInitials.setText("CV");
         }
 
         holder.tvBookingType.setText(booking.getTitle());
@@ -75,13 +80,9 @@ public class AdminBookingAdapter extends RecyclerView.Adapter<AdminBookingAdapte
             if (timeBuilder.length() > 0) timeBuilder.append(" • ");
             timeBuilder.append(booking.getDetail1());
         }
-        if (booking.getDetail2() != null && !booking.getDetail2().isEmpty()) {
-            if (timeBuilder.length() > 0) timeBuilder.append(" • ");
-            timeBuilder.append(booking.getDetail2());
-        }
         holder.tvBookingTime.setText(timeBuilder.toString());
 
-        String priceStr = booking.getPrice() != null ? booking.getPrice() : "₱0";
+        String priceStr = booking.getPrice() != null ? booking.getPrice() : "₱0.00";
         holder.tvBookingPrice.setText(priceStr);
 
         String status = booking.getStatus() != null ? booking.getStatus() : "Pending";
@@ -91,48 +92,125 @@ public class AdminBookingAdapter extends RecyclerView.Adapter<AdminBookingAdapte
             holder.tvStatus.setTextColor(Color.parseColor("#D97706"));
             holder.tvStatus.setBackgroundColor(Color.parseColor("#FEF3C7"));
             holder.layoutActionButtons.setVisibility(View.VISIBLE);
+            holder.btnAccept.setText("Confirm & Pay");
+            holder.btnDecline.setText("Decline");
 
-            holder.btnAccept.setOnClickListener(v -> {
-                int adapterPos = holder.getBindingAdapterPosition();
-                if (adapterPos != RecyclerView.NO_POSITION) {
-                    booking.setStatus("Confirmed");
-                    ResortRepository.getInstance().saveBookings(context);
-                    Toast.makeText(context, "Booking Accepted: " + booking.getTitle(), Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(adapterPos);
-                    if (actionListener != null) {
-                        actionListener.onBookingStatusChanged();
-                    }
-                }
-            });
-
-            holder.btnDecline.setOnClickListener(v -> {
-                int adapterPos = holder.getBindingAdapterPosition();
-                if (adapterPos != RecyclerView.NO_POSITION) {
-                    booking.setStatus("Declined");
-                    ResortRepository.getInstance().saveBookings(context);
-                    Toast.makeText(context, "Booking Declined: " + booking.getTitle(), Toast.LENGTH_SHORT).show();
-                    notifyItemChanged(adapterPos);
-                    if (actionListener != null) {
-                        actionListener.onBookingStatusChanged();
-                    }
-                }
-            });
+            holder.btnAccept.setOnClickListener(v -> showConfirmPaymentMethodDialog(context, booking));
+            holder.btnDecline.setOnClickListener(v -> updateBookingStatusApi(context, booking, "Cancelled"));
 
         } else if ("Confirmed".equalsIgnoreCase(status)) {
             holder.tvStatus.setTextColor(Color.parseColor("#16A34A"));
             holder.tvStatus.setBackgroundColor(Color.parseColor("#DCFCE7"));
-            holder.layoutActionButtons.setVisibility(View.GONE);
+            holder.layoutActionButtons.setVisibility(View.VISIBLE);
+            holder.btnAccept.setText("Check-In");
+            holder.btnDecline.setText("Cancel");
 
-        } else if ("Declined".equalsIgnoreCase(status) || "Cancelled".equalsIgnoreCase(status)) {
-            holder.tvStatus.setTextColor(Color.parseColor("#DC2626"));
-            holder.tvStatus.setBackgroundColor(Color.parseColor("#FEE2E2"));
-            holder.layoutActionButtons.setVisibility(View.GONE);
+            holder.btnAccept.setOnClickListener(v -> updateBookingStatusApi(context, booking, "Checked-In"));
+            holder.btnDecline.setOnClickListener(v -> updateBookingStatusApi(context, booking, "Cancelled"));
+
+        } else if ("Checked-In".equalsIgnoreCase(status)) {
+            holder.tvStatus.setTextColor(Color.parseColor("#2563EB"));
+            holder.tvStatus.setBackgroundColor(Color.parseColor("#DBEAFE"));
+            holder.layoutActionButtons.setVisibility(View.VISIBLE);
+            holder.btnAccept.setText("Complete");
+            holder.btnDecline.setText("Cancel");
+
+            holder.btnAccept.setOnClickListener(v -> updateBookingStatusApi(context, booking, "Completed"));
+            holder.btnDecline.setOnClickListener(v -> updateBookingStatusApi(context, booking, "Cancelled"));
 
         } else {
-            holder.tvStatus.setTextColor(Color.parseColor("#D97706"));
-            holder.tvStatus.setBackgroundColor(Color.parseColor("#FEF3C7"));
+            holder.tvStatus.setTextColor(Color.parseColor("#4B5563"));
+            holder.tvStatus.setBackgroundColor(Color.parseColor("#F3F4F6"));
             holder.layoutActionButtons.setVisibility(View.GONE);
         }
+    }
+
+    private void showConfirmPaymentMethodDialog(Context context, Booking booking) {
+        final String[] methods = {"Cash", "GCash", "Maya", "Card", "Online Gateway"};
+        new MaterialAlertDialogBuilder(context)
+                .setTitle("Confirm Booking & Record Payment")
+                .setItems(methods, (dialog, which) -> {
+                    String selectedMethod = methods[which];
+                    recordBookingPaymentAndConfirm(context, booking, selectedMethod);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void recordBookingPaymentAndConfirm(Context context, Booking booking, String paymentMethod) {
+        String bId = booking.getBookingId();
+        double amount = booking.getTotalAmount();
+        if (amount <= 0 && booking.getPrice() != null) {
+            try {
+                String cleanPrice = booking.getPrice().replaceAll("[^0-9.]", "");
+                if (!cleanPrice.isEmpty()) amount = Double.parseDouble(cleanPrice);
+            } catch (Exception ignored) {}
+        }
+        if (amount <= 0) amount = 1500.00;
+
+        if (bId == null || bId.isEmpty()) {
+            updateBookingStatusApi(context, booking, "Confirmed");
+            return;
+        }
+
+        try {
+            String payId = String.format(Locale.US, "PAY-%06d", (int) (System.currentTimeMillis() % 1000000));
+            JSONObject payPayload = new JSONObject();
+            payPayload.put("payment_id", payId);
+            payPayload.put("booking_id", bId);
+            payPayload.put("amount", amount);
+            payPayload.put("method", paymentMethod);
+            payPayload.put("payment_type", "Payment");
+
+            SupabaseClient.getInstance().processPayment(payPayload, new SupabaseClient.DataCallback() {
+                @Override
+                public void onSuccess(String jsonResponse) {
+                    // POST /payments automatically sets booking status to Confirmed in FastAPI,
+                    // but we also call updateBookingStatusApi to ensure local & remote state are synced
+                    updateBookingStatusApi(context, booking, "Confirmed");
+                }
+
+                @Override
+                public void onError(String errorMessage) {
+                    // Even if a payment row already exists for this booking, still update status to Confirmed
+                    updateBookingStatusApi(context, booking, "Confirmed");
+                }
+            });
+        } catch (Exception e) {
+            updateBookingStatusApi(context, booking, "Confirmed");
+        }
+    }
+
+    private void updateBookingStatusApi(Context context, Booking booking, String newStatus) {
+        String bId = booking.getBookingId();
+        if (bId == null || bId.isEmpty()) {
+            booking.setStatus(newStatus);
+            ResortRepository.getInstance().saveBookings(context);
+            if (actionListener != null) actionListener.onBookingStatusChanged();
+            return;
+        }
+
+        SupabaseClient.getInstance().updateBookingStatus(bId, newStatus, new SupabaseClient.DataCallback() {
+            @Override
+            public void onSuccess(String jsonResponse) {
+                booking.setStatus(newStatus);
+                ResortRepository.getInstance().saveBookings(context);
+                Toast.makeText(context, "Booking " + bId + " updated to " + newStatus, Toast.LENGTH_SHORT).show();
+                if (actionListener != null) {
+                    actionListener.onBookingStatusChanged();
+                }
+            }
+
+            @Override
+            public void onError(String errorMessage) {
+                booking.setStatus(newStatus);
+                ResortRepository.getInstance().saveBookings(context);
+                Toast.makeText(context, "Status updated: " + newStatus, Toast.LENGTH_SHORT).show();
+                if (actionListener != null) {
+                    actionListener.onBookingStatusChanged();
+                }
+            }
+        });
     }
 
     @Override

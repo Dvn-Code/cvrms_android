@@ -372,7 +372,13 @@ public class HomeFragment extends Fragment {
             tvHomeAvatarInitials.setText(getInitials(fullName));
         }
 
-        File file = new File(requireContext().getFilesDir(), PROFILE_PIC_FILE_NAME);
+        String email = prefs.getString("user_email", "");
+        String emailCleanKey = email.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+
+        File file = new File(requireContext().getFilesDir(), "profile_pic_" + emailCleanKey + ".jpg");
+        if (!file.exists()) {
+            file = new File(requireContext().getFilesDir(), PROFILE_PIC_FILE_NAME);
+        }
         if (file.exists() && imgHomeAvatar != null) {
             Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
             if (bitmap != null) {

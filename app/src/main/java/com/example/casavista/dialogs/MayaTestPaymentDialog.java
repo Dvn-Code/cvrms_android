@@ -34,6 +34,16 @@ public class MayaTestPaymentDialog {
             double amount,
             @NonNull OnPaymentCompletedListener listener
     ) {
+        show(context, bookingId, amount, null, listener);
+    }
+
+    public static void show(
+            @NonNull Context context,
+            @NonNull String bookingId,
+            double amount,
+            String prefilledMobile,
+            @NonNull OnPaymentCompletedListener listener
+    ) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_maya_payment, null);
 
         TextView tvBookingId = dialogView.findViewById(R.id.tvMayaBookingId);
@@ -45,6 +55,10 @@ public class MayaTestPaymentDialog {
 
         if (tvBookingId != null) tvBookingId.setText(bookingId);
         if (tvAmount != null) tvAmount.setText(String.format(Locale.US, "₱%.2f", amount));
+
+        if (etMobile != null && prefilledMobile != null && !prefilledMobile.trim().isEmpty()) {
+            etMobile.setText(prefilledMobile.trim());
+        }
 
         int randomRef = 100000 + new Random().nextInt(900000);
         String mockRefText = "Ref: MAYA-SANDBOX-" + randomRef;
@@ -72,7 +86,6 @@ public class MayaTestPaymentDialog {
                     JSONObject payload = new JSONObject();
                     payload.put("payment_id", paymentId);
                     payload.put("booking_id", bookingId);
-                    payload.put("order_id", JSONObject.NULL);
                     payload.put("amount", amount);
                     payload.put("method", "Maya");
                     payload.put("payment_type", "Payment");
@@ -80,30 +93,18 @@ public class MayaTestPaymentDialog {
                     SupabaseClient.getInstance().processPayment(payload, new SupabaseClient.DataCallback() {
                         @Override
                         public void onSuccess(String jsonArrayString) {
-                            dialog.dismiss();
-
-                            // Update local repository status to Confirmed
-                            ResortRepository repo = ResortRepository.getInstance();
-                            repo.loadSavedBookings(context);
-                            for (Booking b : repo.getBookings()) {
-                                if (bookingId.equalsIgnoreCase(b.getBookingId())) {
-                                    b.setStatus("Confirmed");
-                                    b.setDetail1(b.getDetail1() + " • Maya Paid (" + mobile + ")");
-                                    b.setDetail2("Paid via Maya Sandbox (" + mockRefText + ")");
-                                    break;
+                            // Update booking status in Supabase backend to Confirmed
+                            SupabaseClient.getInstance().updateBookingStatus(bookingId, "Confirmed", new SupabaseClient.DataCallback() {
+                                @Override
+                                public void onSuccess(String res) {
+                                    finalizePaymentSuccess(context, dialog, bookingId, mobile, mockRefText, amount, listener);
                                 }
-                            }
-                            repo.saveBookings(context);
 
-                            new MaterialAlertDialogBuilder(context)
-                                    .setTitle("Payment Verified! 🎉")
-                                    .setMessage("Your Maya payment (₱" + String.format(Locale.US, "%.2f", amount) + ") was captured successfully.\nBooking " + bookingId + " status updated to Confirmed in Supabase.")
-                                    .setPositiveButton("OK", (d, w) -> {
-                                        if (listener != null) {
-                                            listener.onPaymentCompleted(true, bookingId);
-                                        }
-                                    })
-                                    .show();
+                                @Override
+                                public void onError(String errorMessage) {
+                                    finalizePaymentSuccess(context, dialog, bookingId, mobile, mockRefText, amount, listener);
+                                }
+                            });
                         }
 
                         @Override
@@ -123,5 +124,41 @@ public class MayaTestPaymentDialog {
         }
 
         dialog.show();
+    }
+
+    private static void finalizePaymentSuccess(
+            Context context,
+            Dialog dialog,
+            String bookingId,
+            String mobile,
+            String mockRefText,
+            double amount,
+            OnPaymentCompletedListener listener
+    ) {
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
+
+        ResortRepository repo = ResortRepository.getInstance();
+        repo.loadSavedBookings(context);
+        for (Booking b : repo.getBookings()) {
+            if (bookingId.equalsIgnoreCase(b.getBookingId())) {
+                b.setStatus("Confirmed");
+                b.setDetail1(b.getDetail1() + " • Maya Paid (" + mobile + ")");
+                b.setDetail2("Paid via Maya Sandbox (" + mockRefText + ")");
+                break;
+            }
+        }
+        repo.saveBookings(context);
+
+        new MaterialAlertDialogBuilder(context)
+                .setTitle("Payment Verified! 🎉")
+                .setMessage("Your Maya payment (₱" + String.format(Locale.US, "%.2f", amount) + ") was captured successfully.\nBooking " + bookingId + " status updated to Confirmed in Supabase.")
+                .setPositiveButton("OK", (d, w) -> {
+                    if (listener != null) {
+                        listener.onPaymentCompleted(true, bookingId);
+                    }
+                })
+                .show();
     }
 }

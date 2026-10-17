@@ -1,15 +1,19 @@
 package com.example.casavista.adapters;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.net.Uri;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
-
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,24 +23,34 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.casavista.R;
 import com.example.casavista.data.ResortRepository;
 import com.example.casavista.models.CatalogItem;
+import com.example.casavista.network.SupabaseClient;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAdapter.ViewHolder> {
+
+    private static final String MAINT_PREFS = "AdminMaintenanceSchedulePrefs";
 
     public interface OnRoomStatusChangeListener {
         void onRoomStatusChanged(CatalogItem item, boolean isUnavailable);
     }
 
-    public interface OnReasonSelectedListener {
-        void onReasonSelected(String reason);
+    public interface OnReasonAndDatesSelectedListener {
+        void onSelected(String reason, String startDate, String endDate);
     }
 
     private List<CatalogItem> list;
     private final OnRoomStatusChangeListener listener;
+    private final Set<String> todayGuestBookedKeys = new HashSet<>();
 
     public SuperAdminRoomAdapter(List<CatalogItem> list, OnRoomStatusChangeListener listener) {
         this.list = list;
@@ -46,6 +60,50 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
     public void updateList(List<CatalogItem> newList) {
         this.list = newList;
         notifyDataSetChanged();
+    }
+
+    public void setTodayGuestBookedKeys(Set<String> activeKeys) {
+        this.todayGuestBookedKeys.clear();
+        if (activeKeys != null) {
+            this.todayGuestBookedKeys.addAll(activeKeys);
+        }
+        notifyDataSetChanged();
+    }
+
+    private String normalizeFacilityKey(String title) {
+        if (title == null) return "Room 1";
+        String t = title.toLowerCase(Locale.US);
+        if (t.contains("room 1") || t.contains("101") || t.contains("villa 1")) return "Room 1";
+        if (t.contains("room 2") || t.contains("102") || t.contains("villa 2")) return "Room 2";
+        if (t.contains("room 3") || t.contains("103") || t.contains("villa 3") || t.contains("loft")) return "Room 3";
+        if (t.contains("court 1") || t.contains("pickleball 1") || t.contains("crt-01")) return "Court 1";
+        if (t.contains("court 2") || t.contains("pickleball 2") || t.contains("crt-02")) return "Court 2";
+        if (t.contains("basketball") || t.contains("court 3") || t.contains("crt-03")) return "Court 3";
+        return title.trim();
+    }
+
+    private String mapKeyToDbRoomId(String facilityKey) {
+        if ("Room 1".equalsIgnoreCase(facilityKey)) return "RM-101";
+        if ("Room 2".equalsIgnoreCase(facilityKey)) return "RM-102";
+        if ("Room 3".equalsIgnoreCase(facilityKey)) return "RM-103";
+        return null;
+    }
+
+    private String mapKeyToDbCourtId(String facilityKey) {
+        if ("Court 1".equalsIgnoreCase(facilityKey)) return "CRT-01";
+        if ("Court 2".equalsIgnoreCase(facilityKey)) return "CRT-02";
+        if ("Court 3".equalsIgnoreCase(facilityKey)) return "CRT-03";
+        return null;
+    }
+
+    private String getTodayDateString() {
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new Date());
+    }
+
+    private String getTomorrowDateString() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        return new SimpleDateFormat("yyyy-MM-dd", Locale.US).format(cal.getTime());
     }
 
     @NonNull
@@ -64,7 +122,6 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
         holder.tvSubtitle.setText(item.getSubtitle());
         holder.tvPrice.setText(item.getPrice());
 
-        // Image
         if (holder.imgThumb != null) {
             boolean loaded = false;
             String imageUrl = item.getImageUrl();
@@ -108,12 +165,24 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             holder.tvPrice.setOnClickListener(v -> showEditPriceDialog(context, item, () -> notifyItemChanged(holder.getBindingAdapterPosition())));
         }
 
-        boolean hasGuestBooking = ResortRepository.getInstance().hasActiveGuestBooking(item.getTitle());
-        String manualOverride = ResortRepository.getInstance().getFacilityStatusOverride(context, item.getTitle());
-        boolean isUnavailable = "Unavailable".equalsIgnoreCase(manualOverride) || "Maintenance".equalsIgnoreCase(manualOverride) || "Cleaning".equalsIgnoreCase(manualOverride);
+        final String facilityKey = normalizeFacilityKey(item.getTitle());
+        boolean hasGuestBookingToday = todayGuestBookedKeys.contains(facilityKey);
 
-        if (hasGuestBooking) {
-            holder.tvStatusBadge.setText("Booked");
+        SharedPreferences maintPrefs = context.getSharedPreferences(MAINT_PREFS, Context.MODE_PRIVATE);
+        String maintStatus = maintPrefs.getString(facilityKey + "_status", "");
+        String maintStart = maintPrefs.getString(facilityKey + "_start", "");
+        String maintEnd = maintPrefs.getString(facilityKey + "_end", "");
+
+        if (maintStatus == null || maintStatus.isEmpty()) {
+            maintStatus = ResortRepository.getInstance().getFacilityStatusOverride(context, facilityKey);
+        }
+
+        boolean isUnavailable = "Unavailable".equalsIgnoreCase(maintStatus)
+                || "Maintenance".equalsIgnoreCase(maintStatus)
+                || "Cleaning".equalsIgnoreCase(maintStatus);
+
+        if (hasGuestBookingToday) {
+            holder.tvStatusBadge.setText("Booked Today");
             holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32")));
             holder.tvStatusBadge.setTextColor(Color.WHITE);
 
@@ -122,21 +191,24 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             holder.btnToggleStatus.setEnabled(false);
 
             View.OnClickListener reservedListener = v ->
-                    Toast.makeText(context, "This room is currently reserved by a guest and cannot be manually opened.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, item.getTitle() + " has a guest checked in today and cannot be manually opened.", Toast.LENGTH_SHORT).show();
 
             holder.btnToggleStatus.setOnClickListener(reservedListener);
             holder.itemView.setOnClickListener(reservedListener);
 
         } else if (isUnavailable) {
-            String badgeText = (manualOverride != null && !manualOverride.trim().isEmpty()) ? manualOverride : "Unavailable";
+            String badgeText = (maintStatus != null && !maintStatus.trim().isEmpty()) ? maintStatus : "Unavailable";
+            if (!maintStart.isEmpty() && !maintEnd.isEmpty()) {
+                badgeText = badgeText + " (" + maintStart.substring(5) + "→" + maintEnd.substring(5) + ")";
+            }
             holder.tvStatusBadge.setText(badgeText);
 
-            if ("Cleaning".equalsIgnoreCase(manualOverride)) {
-                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#0284C7"))); // Blue / Teal
-            } else if ("Maintenance".equalsIgnoreCase(manualOverride)) {
-                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D97706"))); // Amber / Orange
+            if ("Cleaning".equalsIgnoreCase(maintStatus)) {
+                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#0284C7")));
+            } else if ("Maintenance".equalsIgnoreCase(maintStatus)) {
+                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D97706")));
             } else {
-                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32"))); // Rust Red
+                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32")));
             }
             holder.tvStatusBadge.setTextColor(Color.WHITE);
 
@@ -145,8 +217,7 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             holder.btnToggleStatus.setEnabled(true);
 
             View.OnClickListener availableListener = v -> showConfirmationDialog(context, item, "Available", () -> {
-                ResortRepository.getInstance().setFacilityStatusOverride(context, item.getTitle(), "Available");
-                Toast.makeText(context, "Updated " + item.getTitle() + " to Available", Toast.LENGTH_SHORT).show();
+                syncStatusToSupabaseAndPrefs(context, item, facilityKey, "Available", "", "");
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
                     notifyItemChanged(currentPos);
@@ -168,10 +239,9 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             holder.btnToggleStatus.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32")));
             holder.btnToggleStatus.setEnabled(true);
 
-            View.OnClickListener unavailableListener = v -> showUnavailableReasonDialog(context, item, chosenReason -> {
-                showConfirmationDialog(context, item, chosenReason, () -> {
-                    ResortRepository.getInstance().setFacilityStatusOverride(context, item.getTitle(), chosenReason);
-                    Toast.makeText(context, "Updated " + item.getTitle() + " to " + chosenReason, Toast.LENGTH_SHORT).show();
+            View.OnClickListener unavailableListener = v -> showUnavailableReasonDialog(context, item, (chosenReason, startDate, endDate) -> {
+                showConfirmationDialog(context, item, chosenReason + " (" + startDate + " to " + endDate + ")", () -> {
+                    syncStatusToSupabaseAndPrefs(context, item, facilityKey, chosenReason, startDate, endDate);
                     int currentPos = holder.getBindingAdapterPosition();
                     if (currentPos != RecyclerView.NO_POSITION) {
                         notifyItemChanged(currentPos);
@@ -187,14 +257,147 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
         }
     }
 
-    private void showUnavailableReasonDialog(Context context, CatalogItem item, OnReasonSelectedListener onReasonSelected) {
+    private void syncStatusToSupabaseAndPrefs(Context context, CatalogItem item, String facilityKey, String status, String startDate, String endDate) {
+        SharedPreferences maintPrefs = context.getSharedPreferences(MAINT_PREFS, Context.MODE_PRIVATE);
+        String existingMaintBookingId = maintPrefs.getString(facilityKey + "_booking_id", null);
+
+        ResortRepository.getInstance().setFacilityStatusOverride(context, item.getTitle(), status);
+        ResortRepository.getInstance().setFacilityStatusOverride(context, facilityKey, status);
+
+        if ("Available".equalsIgnoreCase(status)) {
+            maintPrefs.edit()
+                    .remove(facilityKey + "_status")
+                    .remove(facilityKey + "_start")
+                    .remove(facilityKey + "_end")
+                    .remove(facilityKey + "_booking_id")
+                    .apply();
+
+            if (existingMaintBookingId != null && !existingMaintBookingId.isEmpty()) {
+                SupabaseClient.getInstance().updateBookingStatus(existingMaintBookingId, "Cancelled", new SupabaseClient.DataCallback() {
+                    @Override public void onSuccess(String s) {}
+                    @Override public void onError(String e) {}
+                });
+            }
+        } else {
+            String maintBookingId = String.format(Locale.US, "MNT-%s-%04d",
+                    facilityKey.replaceAll("\\s+", "").toUpperCase(Locale.US),
+                    (int) (System.currentTimeMillis() % 10000));
+
+            maintPrefs.edit()
+                    .putString(facilityKey + "_status", status)
+                    .putString(facilityKey + "_start", startDate)
+                    .putString(facilityKey + "_end", endDate)
+                    .putString(facilityKey + "_booking_id", maintBookingId)
+                    .apply();
+
+            if (existingMaintBookingId != null && !existingMaintBookingId.isEmpty()) {
+                SupabaseClient.getInstance().updateBookingStatus(existingMaintBookingId, "Cancelled", new SupabaseClient.DataCallback() {
+                    @Override public void onSuccess(String s) {}
+                    @Override public void onError(String e) {}
+                });
+            }
+
+            String dbRoomId = mapKeyToDbRoomId(facilityKey);
+            String dbCourtId = mapKeyToDbCourtId(facilityKey);
+            SupabaseClient.getInstance().createMaintenanceBlockBooking(
+                    maintBookingId,
+                    dbRoomId,
+                    dbCourtId,
+                    startDate,
+                    endDate,
+                    new SupabaseClient.DataCallback() {
+                        @Override public void onSuccess(String s) {}
+                        @Override public void onError(String e) {}
+                    }
+            );
+        }
+
+        String dbRoomId = mapKeyToDbRoomId(facilityKey);
+        if (dbRoomId != null) {
+            String dbStatus = "Ready";
+            if ("Maintenance".equalsIgnoreCase(status)) dbStatus = "Maintenance";
+            else if ("Cleaning".equalsIgnoreCase(status)) dbStatus = "Cleaning";
+            else if ("Unavailable".equalsIgnoreCase(status)) dbStatus = "Occupied";
+
+            String roomNum = dbRoomId.replace("RM-", "");
+            String roomType = "RM-103".equals(dbRoomId) ? "Deluxe" : "Standard";
+            double rate = "RM-103".equals(dbRoomId) ? 3500.0 : 2500.0;
+
+            SupabaseClient.getInstance().updateRoomStatus(dbRoomId, roomNum, rate, 4, dbStatus, roomType, new SupabaseClient.DataCallback() {
+                @Override public void onSuccess(String s) {}
+                @Override public void onError(String e) {}
+            });
+        }
+
+        Toast.makeText(context, "Updated " + item.getTitle() + " to " + status, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showUnavailableReasonDialog(Context context, CatalogItem item, OnReasonAndDatesSelectedListener onSelected) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_select_unavailable_reason, null);
         TextView tvRoomSub = dialogView.findViewById(R.id.tvDialogRoomSub);
         RadioButton radioMaintenance = dialogView.findViewById(R.id.radioMaintenance);
         RadioButton radioCleaning = dialogView.findViewById(R.id.radioCleaning);
 
         if (tvRoomSub != null && item != null) {
-            tvRoomSub.setText("Select unavailability reason for " + item.getTitle());
+            tvRoomSub.setText("Select unavailability reason & schedule for " + item.getTitle());
+        }
+
+        final String[] selectedStart = {getTodayDateString()};
+        final String[] selectedEnd = {getTomorrowDateString()};
+
+        LinearLayout dateBox = new LinearLayout(context);
+        dateBox.setOrientation(LinearLayout.VERTICAL);
+        dateBox.setPadding(16, 24, 16, 8);
+
+        TextView tvLabel = new TextView(context);
+        tvLabel.setText("Block Dates (Prevents User Bookings):");
+        tvLabel.setTypeface(null, Typeface.BOLD);
+        tvLabel.setTextSize(12f);
+        dateBox.addView(tvLabel);
+
+        LinearLayout btnRow = new LinearLayout(context);
+        btnRow.setOrientation(LinearLayout.HORIZONTAL);
+        btnRow.setGravity(Gravity.CENTER_VERTICAL);
+        btnRow.setPadding(0, 10, 0, 0);
+
+        MaterialButton btnFrom = new MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp1.setMarginEnd(8);
+        btnFrom.setLayoutParams(lp1);
+        btnFrom.setText("From: " + selectedStart[0]);
+        btnFrom.setTextSize(11f);
+
+        MaterialButton btnTo = new MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
+        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
+        lp2.setMarginStart(8);
+        btnTo.setLayoutParams(lp2);
+        btnTo.setText("To: " + selectedEnd[0]);
+        btnTo.setTextSize(11f);
+
+        btnFrom.setOnClickListener(v -> pickDate(context, selectedStart[0], picked -> {
+            selectedStart[0] = picked;
+            btnFrom.setText("From: " + picked);
+            if (selectedEnd[0].compareTo(picked) <= 0) {
+                selectedEnd[0] = addOneDay(picked);
+                btnTo.setText("To: " + selectedEnd[0]);
+            }
+        }));
+
+        btnTo.setOnClickListener(v -> pickDate(context, selectedEnd[0], picked -> {
+            if (picked.compareTo(selectedStart[0]) <= 0) {
+                selectedEnd[0] = addOneDay(selectedStart[0]);
+            } else {
+                selectedEnd[0] = picked;
+            }
+            btnTo.setText("To: " + selectedEnd[0]);
+        }));
+
+        btnRow.addView(btnFrom);
+        btnRow.addView(btnTo);
+        dateBox.addView(btnRow);
+
+        if (dialogView instanceof ViewGroup) {
+            ((ViewGroup) dialogView).addView(dateBox);
         }
 
         new MaterialAlertDialogBuilder(context)
@@ -207,19 +410,56 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
                         chosenReason = "Cleaning";
                     }
 
-                    if (onReasonSelected != null) {
-                        onReasonSelected.onReasonSelected(chosenReason);
+                    if (onSelected != null) {
+                        onSelected.onSelected(chosenReason, selectedStart[0], selectedEnd[0]);
                     }
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();
     }
 
+    private interface DateCallback {
+        void onPicked(String dateStr);
+    }
+
+    private void pickDate(Context context, String initial, DateCallback cb) {
+        Calendar cal = Calendar.getInstance();
+        try {
+            String[] p = initial.split("-");
+            if (p.length == 3) {
+                cal.set(Integer.parseInt(p[0]), Integer.parseInt(p[1]) - 1, Integer.parseInt(p[2]));
+            }
+        } catch (Exception ignored) {}
+
+        DatePickerDialog dpd = new DatePickerDialog(
+                context,
+                (view, year, month, dayOfMonth) -> cb.onPicked(String.format(Locale.US, "%04d-%02d-%02d", year, month + 1, dayOfMonth)),
+                cal.get(Calendar.YEAR),
+                cal.get(Calendar.MONTH),
+                cal.get(Calendar.DAY_OF_MONTH)
+        );
+        dpd.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
+        dpd.show();
+    }
+
+    private String addOneDay(String yyyyMmDd) {
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            Date d = sdf.parse(yyyyMmDd);
+            Calendar cal = Calendar.getInstance();
+            if (d != null) cal.setTime(d);
+            cal.add(Calendar.DAY_OF_YEAR, 1);
+            return sdf.format(cal.getTime());
+        } catch (Exception e) {
+            return getTomorrowDateString();
+        }
+    }
+
     private void showConfirmationDialog(Context context, CatalogItem item, String newStatus, Runnable onConfirm) {
         new MaterialAlertDialogBuilder(context)
                 .setTitle("Confirm Status Change")
                 .setMessage("Are you sure you want to set " + item.getTitle() + " to " + newStatus + "?")
-                .setPositiveButton("Yes, Set " + newStatus, (dialog, which) -> {
+                .setPositiveButton("Yes, Save", (dialog, which) -> {
                     if (onConfirm != null) {
                         onConfirm.run();
                     }
@@ -232,8 +472,8 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
     }
 
     private void showEditPriceDialog(Context context, CatalogItem item, Runnable onPriceUpdated) {
-        android.widget.LinearLayout layout = new android.widget.LinearLayout(context);
-        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        LinearLayout layout = new LinearLayout(context);
+        layout.setOrientation(LinearLayout.VERTICAL);
         layout.setPadding(40, 20, 40, 10);
 
         final android.widget.EditText input = new android.widget.EditText(context);

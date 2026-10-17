@@ -75,7 +75,7 @@
     <com.google.android.material.card.MaterialCardView
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_marginBottom="14dp"
+        android:layout_marginBottom="12dp"
         app:cardBackgroundColor="@color/bg_input"
         app:cardCornerRadius="24dp"
         app:cardElevation="0dp"
@@ -89,7 +89,7 @@
             android:drawableStart="@android:drawable/ic_menu_search"
             android:drawablePadding="12dp"
             android:drawableTint="@color/text_secondary"
-            android:hint="Search bookings or guest names..."
+            android:hint="Search bookings, ID, or guest names..."
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:paddingHorizontal="16dp"
@@ -102,7 +102,7 @@
     <HorizontalScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
+        android:layout_marginBottom="8dp"
         android:overScrollMode="never"
         android:scrollbars="none">
 
@@ -120,28 +120,27 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingHorizontal="18dp"
-                android:paddingVertical="10dp"
-                android:text="All"
+                android:paddingVertical="9dp"
+                android:text="All Facilities"
                 android:textColor="@color/bg_main"
                 android:textSize="12sp"
-                android:textStyle="bold"/>
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/filterRooms"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
-                app:cornerRadius="19dp"
                 android:background="@drawable/bg_white"
                 android:backgroundTint="@color/bg_card"
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingHorizontal="18dp"
-                android:textStyle="bold"
-                android:paddingVertical="10dp"
+                android:paddingVertical="9dp"
                 android:text="Rooms"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/filterPickleball"
@@ -153,11 +152,11 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingHorizontal="18dp"
-                android:paddingVertical="10dp"
-                android:textStyle="bold"
+                android:paddingVertical="9dp"
                 android:text="Pickleball"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <TextView
                 android:id="@+id/filterBasketball"
@@ -168,11 +167,11 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:paddingHorizontal="18dp"
-                android:paddingVertical="10dp"
+                android:paddingVertical="9dp"
                 android:text="Basketball"
-                android:textStyle="bold"
                 android:textColor="@color/text_primary"
-                android:textSize="12sp" />
+                android:textSize="12sp"
+                android:textStyle="bold" />
         </LinearLayout>
     </HorizontalScrollView>
 

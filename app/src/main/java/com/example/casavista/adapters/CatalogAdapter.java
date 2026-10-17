@@ -109,29 +109,8 @@ public class CatalogAdapter extends RecyclerView.Adapter<CatalogAdapter.ViewHold
                 holder.itemView.setOnClickListener(blockedListener);
                 holder.btnBookNow.setOnClickListener(blockedListener);
 
-            } else if ("Unavailable".equalsIgnoreCase(facilityStatus)) {
-                holder.btnBookNow.setText("Unavailable");
-                holder.btnBookNow.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32"))); // Rust Red
-                holder.btnBookNow.setTextColor(Color.WHITE);
-
-                View.OnClickListener blockedListener = v ->
-                        Toast.makeText(v.getContext(), "This item is currently unavailable.", Toast.LENGTH_SHORT).show();
-
-                holder.itemView.setOnClickListener(blockedListener);
-                holder.btnBookNow.setOnClickListener(blockedListener);
-
-            } else if ("Booked".equalsIgnoreCase(facilityStatus)) {
-                holder.btnBookNow.setText("Booked");
-                holder.btnBookNow.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32"))); // Rust Red
-                holder.btnBookNow.setTextColor(Color.WHITE);
-
-                View.OnClickListener blockedListener = v ->
-                        Toast.makeText(v.getContext(), "This item is currently booked.", Toast.LENGTH_SHORT).show();
-
-                holder.itemView.setOnClickListener(blockedListener);
-                holder.btnBookNow.setOnClickListener(blockedListener);
-
             } else {
+                // ALWAYS ALLOW GUESTS TO CLICK "Reserve" TO OPEN THE RESERVE POPUP & PICK STAY DATES!
                 holder.btnBookNow.setText("Reserve");
                 holder.btnBookNow.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#EADFD3")));
                 holder.btnBookNow.setTextColor(Color.parseColor("#3D2B10"));

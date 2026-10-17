@@ -21,12 +21,25 @@ import java.util.List;
 
 public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
-    private List<HistoryLog> originalList;
-    private List<HistoryLog> filteredList;
+    private final List<HistoryLog> originalList;
+    private final List<HistoryLog> filteredList;
+    private String currentSearchQuery = "";
 
     public HistoryAdapter(List<HistoryLog> list) {
         this.originalList = new ArrayList<>(list);
         this.filteredList = new ArrayList<>(list);
+    }
+
+    public void updateData(List<HistoryLog> newList) {
+        this.originalList.clear();
+        if (newList != null) {
+            this.originalList.addAll(newList);
+        }
+        filter(currentSearchQuery);
+    }
+
+    public List<HistoryLog> getFilteredList() {
+        return new ArrayList<>(filteredList);
     }
 
     @NonNull
@@ -40,55 +53,52 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         HistoryLog log = filteredList.get(position);
 
-        holder.tvTitle.setText(Html.fromHtml(log.getTitle(), Html.FROM_HTML_MODE_LEGACY));
-        holder.tvSubtitle.setText(log.getSubtitle());
-        holder.tvProcessedBy.setText(log.getProcessedBy());
-        holder.tvTimestamp.setText(log.getTimestamp());
+        holder.tvTitle.setText(Html.fromHtml(log.getTitle() != null ? log.getTitle() : "", Html.FROM_HTML_MODE_LEGACY));
+        holder.tvSubtitle.setText(log.getSubtitle() != null ? log.getSubtitle() : "");
+        holder.tvProcessedBy.setText(log.getProcessedBy() != null ? log.getProcessedBy() : "");
+        holder.tvTimestamp.setText(log.getTimestamp() != null ? log.getTimestamp() : "");
 
-        // Amount Formatting
         if (log.getAmount() != null && !log.getAmount().isEmpty()) {
             holder.tvAmount.setVisibility(View.VISIBLE);
             holder.tvAmount.setText(log.getAmount());
 
             if (log.getAmount().startsWith("+")) {
-                holder.tvAmount.setTextColor(Color.parseColor("#4CAF50")); // Green
+                holder.tvAmount.setTextColor(Color.parseColor("#4CAF50"));
             } else if (log.getAmount().startsWith("-")) {
-                holder.tvAmount.setTextColor(Color.parseColor("#E53935")); // Red
+                holder.tvAmount.setTextColor(Color.parseColor("#E53935"));
             } else {
-                holder.tvAmount.setTextColor(Color.parseColor("#333333"));
+                holder.tvAmount.setTextColor(Color.parseColor("#D97706"));
             }
         } else {
             holder.tvAmount.setVisibility(View.GONE);
         }
 
-        // Configure Badge Color & Symbol based on Action Type
         GradientDrawable badgeBackground = new GradientDrawable();
         badgeBackground.setShape(GradientDrawable.OVAL);
 
         switch (log.getType()) {
             case PAYMENT:
-                badgeBackground.setColor(Color.parseColor("#F5E093")); // Gold/Yellow
-                holder.tvBadgeIcon.setText("$");
+                badgeBackground.setColor(Color.parseColor("#F5E093"));
+                holder.tvBadgeIcon.setText("₱");
                 break;
             case BOOKING:
-                badgeBackground.setColor(Color.parseColor("#D4E7C5")); // Soft Green
+                badgeBackground.setColor(Color.parseColor("#D4E7C5"));
                 holder.tvBadgeIcon.setText("📅");
                 break;
             case REFUND:
-                badgeBackground.setColor(Color.parseColor("#F9D2C4")); // Peach/Orange
+                badgeBackground.setColor(Color.parseColor("#F9D2C4"));
                 holder.tvBadgeIcon.setText("↺");
                 break;
             case STAFF_ACTIVITY:
-                badgeBackground.setColor(Color.parseColor("#D0E8F2")); // Light Blue
+                badgeBackground.setColor(Color.parseColor("#D0E8F2"));
                 holder.tvBadgeIcon.setText("👤");
                 break;
         }
 
         holder.badgeContainer.setBackground(badgeBackground);
 
-        // Click Event for Interactivity
         holder.itemView.setOnClickListener(v ->
-                Toast.makeText(v.getContext(), "Transaction ID: " + log.getId(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(v.getContext(), "Ref ID: " + log.getId() + " (" + log.getTimestamp() + ")", Toast.LENGTH_SHORT).show()
         );
     }
 
@@ -97,17 +107,22 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHold
         return filteredList.size();
     }
 
-    // Filter list dynamically as admin types in search bar
     public void filter(String query) {
+        currentSearchQuery = query != null ? query : "";
         filteredList.clear();
-        if (query.isEmpty()) {
+        if (currentSearchQuery.trim().isEmpty()) {
             filteredList.addAll(originalList);
         } else {
-            String lowerQuery = query.toLowerCase().trim();
+            String lowerQuery = currentSearchQuery.toLowerCase().trim();
             for (HistoryLog item : originalList) {
-                if (item.getTitle().toLowerCase().contains(lowerQuery) ||
-                        item.getSubtitle().toLowerCase().contains(lowerQuery) ||
-                        item.getProcessedBy().toLowerCase().contains(lowerQuery)) {
+                String t = item.getTitle() != null ? item.getTitle().toLowerCase() : "";
+                String s = item.getSubtitle() != null ? item.getSubtitle().toLowerCase() : "";
+                String p = item.getProcessedBy() != null ? item.getProcessedBy().toLowerCase() : "";
+                String id = item.getId() != null ? item.getId().toLowerCase() : "";
+                String dt = item.getTimestamp() != null ? item.getTimestamp().toLowerCase() : "";
+
+                if (t.contains(lowerQuery) || s.contains(lowerQuery) || p.contains(lowerQuery)
+                        || id.contains(lowerQuery) || dt.contains(lowerQuery)) {
                     filteredList.add(item);
                 }
             }

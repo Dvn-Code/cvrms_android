@@ -7,12 +7,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,7 +46,9 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapter.OnEmployeeActionListener {
 
@@ -121,8 +128,8 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
 
         SharedPreferences profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
 
-        String name = profilePrefs.getString(KEY_ADMIN_NAME, "Juan Dela Cruz");
-        String email = profilePrefs.getString(KEY_ADMIN_EMAIL, "juan.delacruz@casavista.com");
+        String name = profilePrefs.getString(KEY_ADMIN_NAME, "Dr. Lemyel Yap");
+        String email = profilePrefs.getString(KEY_ADMIN_EMAIL, "superadmin@casavista.com");
         String role = profilePrefs.getString(KEY_ADMIN_ROLE, "SUPER ADMIN");
 
         if (tvSuperAdminName != null) tvSuperAdminName.setText(name);
@@ -135,7 +142,6 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
             switchDarkMode.setChecked(isDarkMode);
         }
 
-        // Load Avatar Photo
         String savedPath = profilePrefs.getString(KEY_AVATAR_PATH, null);
         if (savedPath != null && imgProfileAvatar != null) {
             try {
@@ -253,8 +259,8 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
         if (getContext() == null) return;
 
         SharedPreferences profilePrefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
-        String currentName = profilePrefs.getString(KEY_ADMIN_NAME, "Juan Dela Cruz");
-        String currentEmail = profilePrefs.getString(KEY_ADMIN_EMAIL, "juan.delacruz@casavista.com");
+        String currentName = profilePrefs.getString(KEY_ADMIN_NAME, "Dr. Lemyel Yap");
+        String currentEmail = profilePrefs.getString(KEY_ADMIN_EMAIL, "superadmin@casavista.com");
         String currentRole = profilePrefs.getString(KEY_ADMIN_ROLE, "SUPER ADMIN");
 
         View dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_edit_super_admin_profile, null);
@@ -273,8 +279,8 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
                     String newEmail = etEmail != null ? etEmail.getText().toString().trim() : "";
                     String newRole = etRole != null ? etRole.getText().toString().trim() : "";
 
-                    if (newName.isEmpty()) newName = "Juan Dela Cruz";
-                    if (newEmail.isEmpty()) newEmail = "juan.delacruz@casavista.com";
+                    if (newName.isEmpty()) newName = "Dr. Lemyel Yap";
+                    if (newEmail.isEmpty()) newEmail = "superadmin@casavista.com";
                     if (newRole.isEmpty()) newRole = "SUPER ADMIN";
 
                     profilePrefs.edit()
@@ -325,38 +331,87 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
     }
 
     private void showAddRoleDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Add New Staff Role");
+        if (getContext() == null) return;
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setTitle("Add New Staff & Login Credentials");
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 20, 50, 20);
+        layout.setPadding(56, 24, 56, 16);
 
         final EditText etName = new EditText(getContext());
-        etName.setHint("Employee Name");
+        etName.setHint("Full Name (e.g. Jopet Tan)");
         layout.addView(etName);
 
         final EditText etDept = new EditText(getContext());
-        etDept.setHint("Department");
+        etDept.setHint("Department (e.g. Front Office, Billing)");
         layout.addView(etDept);
 
-        final EditText etRole = new EditText(getContext());
-        etRole.setHint("Role Title (e.g. Supervisor, Admin)");
-        layout.addView(etRole);
+        TextView tvRoleLabel = new TextView(getContext());
+        tvRoleLabel.setText("Select System Access Role:");
+        tvRoleLabel.setTextSize(12f);
+        tvRoleLabel.setPadding(8, 20, 8, 4);
+        layout.addView(tvRoleLabel);
+
+        final Spinner spinnerRole = new Spinner(getContext());
+        List<String> validRoles = Arrays.asList("Front Desk", "Cashier", "Manager", "Admin");
+        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, validRoles);
+        spinnerRole.setAdapter(roleAdapter);
+        layout.addView(spinnerRole);
+
+        final EditText etUsername = new EditText(getContext());
+        etUsername.setHint("Login Username (e.g. jopet)");
+        layout.addView(etUsername);
+
+        final EditText etEmail = new EditText(getContext());
+        etEmail.setHint("Staff Email (e.g. jopet@casavista.com)");
+        etEmail.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        layout.addView(etEmail);
+
+        final EditText etPassword = new EditText(getContext());
+        etPassword.setHint("Login Password (default: Staff123!)");
+        etPassword.setText("Staff123!");
+        layout.addView(etPassword);
+
+        // Auto-suggest username & @casavista.com email as name is typed
+        etName.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String clean = s.toString().trim().toLowerCase(Locale.US).replaceAll("\\s+", ".");
+                String userClean = s.toString().trim().toLowerCase(Locale.US).replaceAll("[^a-z0-9]", "");
+                if (!clean.isEmpty()) {
+                    etUsername.setText(userClean);
+                    etEmail.setText(clean + "@casavista.com");
+                }
+            }
+            @Override public void afterTextChanged(Editable s) {}
+        });
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Add", (dialog, which) -> {
+        builder.setPositiveButton("Create Staff Account", (dialog, which) -> {
             String name = etName.getText().toString().trim();
             String dept = etDept.getText().toString().trim();
-            String role = etRole.getText().toString().trim();
+            String role = spinnerRole.getSelectedItem().toString();
+            String username = etUsername.getText().toString().trim();
+            String email = etEmail.getText().toString().trim();
+            String password = etPassword.getText().toString().trim();
 
-            if (!name.isEmpty() && !dept.isEmpty() && !role.isEmpty()) {
-                EmployeeRepository.getInstance().addEmployee(requireContext(), name, dept, role);
+            if (dept.isEmpty()) dept = role + " Department";
+
+            if (!name.isEmpty()) {
+                Employee created = EmployeeRepository.getInstance().addEmployeeWithCredentials(
+                        requireContext(), name, dept, role, username, email, password
+                );
                 loadEmployeeList();
-                Toast.makeText(getContext(), "Role assigned to " + name, Toast.LENGTH_SHORT).show();
+                Toast.makeText(
+                        getContext(),
+                        "Created " + created.getName() + " (" + created.getRole() + ")\nLogin: " + created.getEmail() + " | Pass: " + created.getPassword(),
+                        Toast.LENGTH_LONG
+                ).show();
             } else {
-                Toast.makeText(getContext(), "All fields are required", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Employee full name is required", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -366,39 +421,77 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
 
     @Override
     public void onEditRole(Employee employee, int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Update Role — " + employee.getName());
+        if (getContext() == null) return;
+        MaterialAlertDialogBuilder builder = new MaterialAlertDialogBuilder(requireContext());
+        builder.setTitle("Edit Staff & Login — " + employee.getName());
 
         LinearLayout layout = new LinearLayout(getContext());
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(50, 20, 50, 20);
+        layout.setPadding(56, 24, 56, 16);
+
+        final EditText etName = new EditText(getContext());
+        etName.setHint("Full Name");
+        etName.setText(employee.getName());
+        layout.addView(etName);
 
         final EditText etDept = new EditText(getContext());
         etDept.setHint("Department");
         etDept.setText(employee.getDepartment());
         layout.addView(etDept);
 
-        final EditText etRole = new EditText(getContext());
-        etRole.setHint("Role Title");
-        etRole.setText(employee.getRole());
-        layout.addView(etRole);
+        TextView tvRoleLabel = new TextView(getContext());
+        tvRoleLabel.setText("System Access Role:");
+        tvRoleLabel.setTextSize(12f);
+        tvRoleLabel.setPadding(8, 20, 8, 4);
+        layout.addView(tvRoleLabel);
+
+        final Spinner spinnerRole = new Spinner(getContext());
+        List<String> validRoles = Arrays.asList("Front Desk", "Cashier", "Manager", "Admin");
+        ArrayAdapter<String> roleAdapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_dropdown_item, validRoles);
+        spinnerRole.setAdapter(roleAdapter);
+        int roleIdx = validRoles.indexOf(EmployeeRepository.normalizeRoleForDatabase(employee.getRole()));
+        if (roleIdx >= 0) spinnerRole.setSelection(roleIdx);
+        layout.addView(spinnerRole);
+
+        final EditText etUsername = new EditText(getContext());
+        etUsername.setHint("Login Username");
+        etUsername.setText(employee.getUsername());
+        layout.addView(etUsername);
+
+        final EditText etEmail = new EditText(getContext());
+        etEmail.setHint("Staff Email (@casavista.com)");
+        etEmail.setInputType(InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        etEmail.setText(employee.getEmail());
+        layout.addView(etEmail);
+
+        final EditText etPassword = new EditText(getContext());
+        etPassword.setHint("Login Password");
+        etPassword.setText(employee.getPassword());
+        layout.addView(etPassword);
 
         builder.setView(layout);
 
-        builder.setPositiveButton("Save", (dialog, which) -> {
+        builder.setPositiveButton("Save Changes", (dialog, which) -> {
+            String newName = etName.getText().toString().trim();
             String newDept = etDept.getText().toString().trim();
-            String newRole = etRole.getText().toString().trim();
+            String newRole = spinnerRole.getSelectedItem().toString();
+            String newUsername = etUsername.getText().toString().trim();
+            String newEmail = etEmail.getText().toString().trim();
+            String newPassword = etPassword.getText().toString().trim();
 
-            if (!newDept.isEmpty() && !newRole.isEmpty()) {
-                EmployeeRepository.getInstance().updateEmployee(
+            if (!newName.isEmpty() && !newDept.isEmpty()) {
+                EmployeeRepository.getInstance().updateEmployeeWithCredentials(
                         requireContext(),
                         position,
-                        employee.getName(),
+                        newName,
                         newDept,
-                        newRole
+                        newRole,
+                        newUsername,
+                        newEmail,
+                        newPassword
                 );
                 loadEmployeeList();
-                Toast.makeText(getContext(), "Role updated successfully", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Updated " + newName + " (" + newRole + ") credentials!", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -409,12 +502,12 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
     @Override
     public void onDeleteRole(Employee employee, int position) {
         new AlertDialog.Builder(requireContext())
-                .setTitle("Delete Role")
-                .setMessage("Are you sure you want to remove " + employee.getName() + "'s role?")
+                .setTitle("Remove Staff Account")
+                .setMessage("Are you sure you want to remove " + employee.getName() + " (" + employee.getEmail() + ")?")
                 .setPositiveButton("Delete", (dialog, which) -> {
                     EmployeeRepository.getInstance().deleteEmployee(requireContext(), position);
                     loadEmployeeList();
-                    Toast.makeText(getContext(), "Role deleted", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(getContext(), "Staff account removed", Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
