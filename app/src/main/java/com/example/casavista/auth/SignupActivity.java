@@ -641,6 +641,12 @@ public class SignupActivity extends AppCompatActivity {
                                 .putBoolean("has_agreed_terms", true)
                                 .apply();
 
+                        com.example.casavista.data.ResortRepository repo = com.example.casavista.data.ResortRepository.getInstance();
+                        repo.setCurrentUserName(fullName);
+                        repo.setCurrentUserEmail(email.toLowerCase());
+                        repo.setCurrentCustomerId(custId);
+                        com.example.casavista.network.SupabaseClient.setCurrentSessionCustomer(custId, email.toLowerCase());
+
                         Toast.makeText(SignupActivity.this, "Account created & verified (" + custId + ")!", Toast.LENGTH_LONG).show();
                         Intent intent = new Intent(SignupActivity.this, MainActivity.class);
                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

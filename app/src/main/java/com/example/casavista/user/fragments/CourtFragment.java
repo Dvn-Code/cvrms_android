@@ -742,7 +742,7 @@ public class CourtFragment extends Fragment {
                 ? paddleCount + " Paddles (₱" + (paddleCount * 100) + ")"
                 : "Equipment: Standard";
         if (tvDetails != null) tvDetails.setText(selectedSport + " • " + paddleDetail);
-        if (tvRate != null) tvRate.setText(String.format(Locale.US, "₱%,.2f Total", calculatedTotalPrice));
+        if (tvRate != null) tvRate.setText(String.format(Locale.US, "₱%,.2f Total", (double) calculatedTotalPrice));
 
         Runnable updatePlanAmount = () -> {
             boolean is50 = rbPayHalf != null && rbPayHalf.isChecked();

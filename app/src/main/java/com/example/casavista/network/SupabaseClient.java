@@ -51,12 +51,45 @@ public class SupabaseClient {
         return instance;
     }
 
+    private static String currentSessionCustomerId = null;
+    private static String currentSessionEmail = null;
+
+    public static void setCurrentSessionCustomer(String customerId, String email) {
+        currentSessionCustomerId = customerId;
+        currentSessionEmail = email;
+    }
+
+    public static String getCurrentSessionCustomerId() {
+        return currentSessionCustomerId;
+    }
+
+    public static String getCurrentSessionEmail() {
+        return currentSessionEmail;
+    }
+
     private void applyStaffHeaders(HttpURLConnection conn) {
         conn.setRequestProperty("Accept", "application/json");
         conn.setRequestProperty("X-Staff-Token", "CVRMS-SECURE-STAFF-TOKEN-2026");
         conn.setRequestProperty("Authorization", "Basic Y3ZybXNfcHJkX3NlcnZpY2VfYWNjb3VudDpTV1VfUm9vdDIwMjYhIQ==");
-        conn.setConnectTimeout(8000);
-        conn.setReadTimeout(8000);
+
+        String cid = currentSessionCustomerId;
+        if (cid == null || cid.trim().isEmpty()) {
+            cid = com.example.casavista.data.ResortRepository.getInstance().getCurrentCustomerId();
+        }
+        String cemail = currentSessionEmail;
+        if (cemail == null || cemail.trim().isEmpty()) {
+            cemail = com.example.casavista.data.ResortRepository.getInstance().getCurrentUserEmail();
+        }
+
+        if (cid != null && !cid.trim().isEmpty()) {
+            conn.setRequestProperty("X-Customer-Id", cid.trim());
+        }
+        if (cemail != null && !cemail.trim().isEmpty()) {
+            conn.setRequestProperty("X-Customer-Email", cemail.trim());
+        }
+
+        conn.setConnectTimeout(10000);
+        conn.setReadTimeout(10000);
     }
 
     public String generateUniqueBookingId(String prefix) {
@@ -565,6 +598,12 @@ public class SupabaseClient {
                 conn.setRequestMethod("POST");
                 conn.setRequestProperty("Content-Type", "application/json; utf-8");
                 applyStaffHeaders(conn);
+                if (paymentPayload != null && paymentPayload.has("customer_id")) {
+                    String explicitCid = paymentPayload.optString("customer_id", "").trim();
+                    if (!explicitCid.isEmpty()) {
+                        conn.setRequestProperty("X-Customer-Id", explicitCid);
+                    }
+                }
                 conn.setDoOutput(true);
 
                 try (OutputStream os = conn.getOutputStream()) {

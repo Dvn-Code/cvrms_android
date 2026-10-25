@@ -24,6 +24,18 @@ public class MainActivity extends AppCompatActivity {
 
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
+        android.content.SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
+        String savedCustId = prefs.getString("customer_id", "");
+        String savedEmail = prefs.getString("user_email", "");
+        String savedName = prefs.getString("user_name", "");
+        if (!savedCustId.isEmpty() || !savedEmail.isEmpty()) {
+            com.example.casavista.data.ResortRepository repo = com.example.casavista.data.ResortRepository.getInstance();
+            if (!savedCustId.isEmpty()) repo.setCurrentCustomerId(savedCustId);
+            if (!savedEmail.isEmpty()) repo.setCurrentUserEmail(savedEmail);
+            if (!savedName.isEmpty()) repo.setCurrentUserName(savedName);
+            com.example.casavista.network.SupabaseClient.setCurrentSessionCustomer(savedCustId, savedEmail);
+        }
+
         // Load default Home Fragment on initial activity creation
         if (savedInstanceState == null) {
             loadFragment(new HomeFragment());

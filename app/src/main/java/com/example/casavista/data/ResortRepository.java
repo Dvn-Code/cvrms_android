@@ -35,6 +35,7 @@ public class ResortRepository {
 
     private String currentUserName = "Alex Morgan";
     private String currentUserEmail = "alex.morgan@casavista.com";
+    private String currentCustomerId = null;
 
     private ResortRepository() {
         bookingsList = new ArrayList<>();
@@ -66,6 +67,9 @@ public class ResortRepository {
 
     public String getCurrentUserEmail() { return currentUserEmail; }
     public void setCurrentUserEmail(String currentUserEmail) { this.currentUserEmail = currentUserEmail; }
+
+    public String getCurrentCustomerId() { return currentCustomerId; }
+    public void setCurrentCustomerId(String currentCustomerId) { this.currentCustomerId = currentCustomerId; }
 
     public void saveCatalogToPrefs(Context context) {
         if (context == null) return;

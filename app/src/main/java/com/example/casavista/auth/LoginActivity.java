@@ -326,6 +326,8 @@ public class LoginActivity extends AppCompatActivity {
 
                         repo.setCurrentUserName(fullName);
                         repo.setCurrentUserEmail(finalEmail);
+                        repo.setCurrentCustomerId(customerId);
+                        com.example.casavista.network.SupabaseClient.setCurrentSessionCustomer(customerId, finalEmail);
 
                         Toast.makeText(LoginActivity.this, "Welcome to CasaVista, " + finalFirst + " (" + customerId + ")!", Toast.LENGTH_SHORT).show();
                         navigateBasedOnRole("USER");
@@ -749,8 +751,25 @@ public class LoginActivity extends AppCompatActivity {
                         String email = response.optString("email", identifier);
                         String fullName = firstName + " " + lastName;
 
+                        String emailCleanKey = email.toLowerCase().replaceAll("[^a-zA-Z0-9]", "_");
+                        SharedPreferences prefs = getSharedPreferences("CasavistaProfilePrefs", MODE_PRIVATE);
+                        prefs.edit()
+                                .putString("user_id", custId)
+                                .putString("customer_id", custId)
+                                .putString("customer_id_" + emailCleanKey, custId)
+                                .putString("user_name", fullName)
+                                .putString("user_name_" + emailCleanKey, fullName)
+                                .putString("user_first_name", firstName)
+                                .putString("user_last_name", lastName)
+                                .putString("user_email", email)
+                                .putBoolean("is_logged_in", true)
+                                .putBoolean("has_agreed_terms", true)
+                                .apply();
+
                         repo.setCurrentUserName(fullName);
                         repo.setCurrentUserEmail(email);
+                        repo.setCurrentCustomerId(custId);
+                        com.example.casavista.network.SupabaseClient.setCurrentSessionCustomer(custId, email);
 
                         Toast.makeText(LoginActivity.this, "Welcome back, " + firstName + " (" + custId + ")!", Toast.LENGTH_SHORT).show();
                         navigateBasedOnRole("USER");

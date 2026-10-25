@@ -83,35 +83,38 @@ public class MayaTestPaymentDialog {
 
                 try {
                     String paymentId = com.example.casavista.helpers.PaymentIdGenerator.generatePaymentId();
+                    String cleanRefNo = "MAYA-" + System.currentTimeMillis() + "-" + (100000 + new Random().nextInt(900000));
+
+                    android.content.SharedPreferences prefs = context.getSharedPreferences("CasavistaProfilePrefs", Context.MODE_PRIVATE);
+                    String customerId = prefs.getString("customer_id", com.example.casavista.data.ResortRepository.getInstance().getCurrentCustomerId());
+                    String customerEmail = prefs.getString("user_email", com.example.casavista.data.ResortRepository.getInstance().getCurrentUserEmail());
+
                     JSONObject payload = new JSONObject();
                     payload.put("payment_id", paymentId);
                     payload.put("booking_id", bookingId);
                     payload.put("amount", amount);
                     payload.put("method", "Maya");
                     payload.put("payment_type", "Payment");
+                    payload.put("reference_no", cleanRefNo);
+                    if (customerId != null && !customerId.trim().isEmpty()) {
+                        payload.put("customer_id", customerId.trim());
+                    }
+                    if (customerEmail != null && !customerEmail.trim().isEmpty()) {
+                        payload.put("customer_email", customerEmail.trim());
+                    }
 
                     SupabaseClient.getInstance().processPayment(payload, new SupabaseClient.DataCallback() {
                         @Override
                         public void onSuccess(String jsonArrayString) {
-                            // Update booking status in Supabase backend to Confirmed
-                            SupabaseClient.getInstance().updateBookingStatus(bookingId, "Confirmed", new SupabaseClient.DataCallback() {
-                                @Override
-                                public void onSuccess(String res) {
-                                    finalizePaymentSuccess(context, dialog, bookingId, mobile, mockRefText, amount, listener);
-                                }
-
-                                @Override
-                                public void onError(String errorMessage) {
-                                    finalizePaymentSuccess(context, dialog, bookingId, mobile, mockRefText, amount, listener);
-                                }
-                            });
+                            // Backend process_payment automatically sets status to Confirmed in Supabase
+                            finalizePaymentSuccess(context, dialog, bookingId, mobile, mockRefText, amount, listener);
                         }
 
                         @Override
                         public void onError(String errorMessage) {
                             btnPaySuccess.setEnabled(true);
                             btnPaySuccess.setText("Simulate Successful Payment");
-                            Toast.makeText(context, "Payment failed or rejected: " + errorMessage, Toast.LENGTH_LONG).show();
+                            Toast.makeText(context, "Payment failed: " + errorMessage, Toast.LENGTH_LONG).show();
                         }
                     });
 
