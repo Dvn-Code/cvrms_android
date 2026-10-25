@@ -3,10 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="@color/card_bg"
     android:fillViewport="true"
     android:overScrollMode="never">
 
     <LinearLayout
+        android:id="@+id/dialogStatusRootLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
@@ -15,7 +17,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Unavailability Reason"
+            android:text="Set Facility Status"
             android:textColor="@color/admin_text_primary"
             android:textSize="18sp"
             android:textStyle="bold" />
@@ -25,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Choose why this facility is being set as unavailable"
+            android:text="Select allowed Supabase status for this facility"
             android:textColor="@color/admin_text_secondary"
             android:textSize="12sp" />
 
@@ -37,7 +39,18 @@
             android:orientation="vertical">
 
             <RadioButton
-                android:id="@+id/radioMaintenance"
+                android:id="@+id/radioStatusReady"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingVertical="8dp"
+                android:text="Ready (Available for Booking)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioStatusMaintenance"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="8dp"
@@ -47,7 +60,7 @@
                 android:textStyle="bold" />
 
             <RadioButton
-                android:id="@+id/radioCleaning"
+                android:id="@+id/radioStatusCleaning"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:paddingVertical="8dp"
@@ -57,16 +70,72 @@
                 android:textStyle="bold" />
 
             <RadioButton
-                android:id="@+id/radioGeneralUnavailable"
+                android:id="@+id/radioStatusOccupied"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:checked="true"
                 android:paddingVertical="8dp"
-                android:text="Unavailable (General / Off-limits)"
+                android:text="Occupied (Manual In-Use Block)"
                 android:textColor="@color/admin_text_primary"
                 android:textSize="14sp"
                 android:textStyle="bold" />
         </RadioGroup>
+
+        <!-- Block Date Range Layout (visible when not Ready) -->
+        <LinearLayout
+            android:id="@+id/layoutMaintenanceScheduleDates"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="BLOCK SCHEDULE DATES"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Dates facility is unavailable to guests"
+                android:textColor="@color/admin_text_secondary"
+                android:textSize="11sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDialogDateFrom"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:text="From: 2026-10-26"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:strokeColor="@color/border_soft" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnDialogDateTo"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="To: 2026-10-27"
+                    android:textAllCaps="false"
+                    android:textSize="11sp"
+                    app:strokeColor="@color/border_soft" />
+            </LinearLayout>
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

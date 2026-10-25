@@ -194,10 +194,9 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
         if (maintStatus == null || maintStatus.isEmpty()) {
             maintStatus = ResortRepository.getInstance().getFacilityStatusOverride(context, facilityKey);
         }
-
-        boolean isUnavailable = "Unavailable".equalsIgnoreCase(maintStatus)
-                || "Maintenance".equalsIgnoreCase(maintStatus)
-                || "Cleaning".equalsIgnoreCase(maintStatus);
+        if (maintStatus == null || maintStatus.isEmpty() || "Available".equalsIgnoreCase(maintStatus)) {
+            maintStatus = "Ready";
+        }
 
         if (hasGuestBookingToday) {
             holder.tvStatusBadge.setText("Booked Today");
@@ -209,69 +208,50 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             holder.btnToggleStatus.setEnabled(false);
 
             View.OnClickListener reservedListener = v ->
-                    Toast.makeText(context, item.getTitle() + " has a guest checked in today and cannot be manually opened.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(context, item.getTitle() + " has an active guest booking today and cannot be manually modified.", Toast.LENGTH_SHORT).show();
 
             holder.btnToggleStatus.setOnClickListener(reservedListener);
             holder.itemView.setOnClickListener(reservedListener);
 
-        } else if (isUnavailable) {
-            String badgeText = (maintStatus != null && !maintStatus.trim().isEmpty()) ? maintStatus : "Unavailable";
-            if (!maintStart.isEmpty() && !maintEnd.isEmpty()) {
-                badgeText = badgeText + " (" + maintStart.substring(5) + "→" + maintEnd.substring(5) + ")";
+        } else {
+            String badgeText = maintStatus;
+            if (!"Ready".equalsIgnoreCase(maintStatus) && !maintStart.isEmpty() && !maintEnd.isEmpty()) {
+                String sDisp = maintStart.length() >= 5 ? maintStart.substring(5) : maintStart;
+                String eDisp = maintEnd.length() >= 5 ? maintEnd.substring(5) : maintEnd;
+                badgeText = maintStatus + " (" + sDisp + "→" + eDisp + ")";
             }
             holder.tvStatusBadge.setText(badgeText);
 
-            if ("Cleaning".equalsIgnoreCase(maintStatus)) {
-                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#0284C7")));
-            } else if ("Maintenance".equalsIgnoreCase(maintStatus)) {
+            if ("Maintenance".equalsIgnoreCase(maintStatus)) {
                 holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#D97706")));
-            } else {
+            } else if ("Cleaning".equalsIgnoreCase(maintStatus)) {
+                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#0284C7")));
+            } else if ("Occupied".equalsIgnoreCase(maintStatus) || "Unavailable".equalsIgnoreCase(maintStatus)) {
                 holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32")));
+            } else {
+                holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4E8D4F")));
             }
             holder.tvStatusBadge.setTextColor(Color.WHITE);
 
-            holder.btnToggleStatus.setText("Set as Available");
-            holder.btnToggleStatus.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4E8D4F")));
+            holder.btnToggleStatus.setText("Set Status");
+            holder.btnToggleStatus.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4D391A")));
+            holder.btnToggleStatus.setTextColor(Color.WHITE);
             holder.btnToggleStatus.setEnabled(true);
 
-            View.OnClickListener availableListener = v -> showConfirmationDialog(context, item, "Available", () -> {
-                syncStatusToSupabaseAndPrefs(context, item, facilityKey, "Available", "", "");
+            final String currentResolvedStatus = maintStatus;
+            View.OnClickListener setStatusListener = v -> showSetStatusDialog(context, item, facilityKey, currentResolvedStatus, (newStatus, startDate, endDate) -> {
+                syncStatusToSupabaseAndPrefs(context, item, facilityKey, newStatus, startDate, endDate);
                 int currentPos = holder.getBindingAdapterPosition();
                 if (currentPos != RecyclerView.NO_POSITION) {
                     notifyItemChanged(currentPos);
                 }
                 if (listener != null) {
-                    listener.onRoomStatusChanged(item, false);
+                    listener.onRoomStatusChanged(item, !"Ready".equalsIgnoreCase(newStatus));
                 }
             });
 
-            holder.btnToggleStatus.setOnClickListener(availableListener);
-            holder.itemView.setOnClickListener(availableListener);
-
-        } else {
-            holder.tvStatusBadge.setText("Available");
-            holder.tvStatusBadge.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#4E8D4F")));
-            holder.tvStatusBadge.setTextColor(Color.WHITE);
-
-            holder.btnToggleStatus.setText("Set as Unavailable");
-            holder.btnToggleStatus.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#C85A32")));
-            holder.btnToggleStatus.setEnabled(true);
-
-            View.OnClickListener unavailableListener = v -> showUnavailableReasonDialog(context, item, (chosenReason, startDate, endDate) -> {
-                showConfirmationDialog(context, item, chosenReason + " (" + startDate + " to " + endDate + ")", () -> {
-                    syncStatusToSupabaseAndPrefs(context, item, facilityKey, chosenReason, startDate, endDate);
-                    int currentPos = holder.getBindingAdapterPosition();
-                    if (currentPos != RecyclerView.NO_POSITION) {
-                        notifyItemChanged(currentPos);
-                    }
-                    if (listener != null) {
-                        listener.onRoomStatusChanged(item, true);
-                    }
-                });
-            });
-
-            holder.btnToggleStatus.setOnClickListener(unavailableListener);
-            holder.itemView.setOnClickListener(unavailableListener);
+            holder.btnToggleStatus.setOnClickListener(setStatusListener);
+            holder.itemView.setOnClickListener(setStatusListener);
         }
 
         if (holder.btnDeleteRoom != null) {
@@ -319,10 +299,18 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
         SharedPreferences maintPrefs = context.getSharedPreferences(MAINT_PREFS, Context.MODE_PRIVATE);
         String existingMaintBookingId = maintPrefs.getString(facilityKey + "_booking_id", null);
 
-        ResortRepository.getInstance().setFacilityStatusOverride(context, item.getTitle(), status);
-        ResortRepository.getInstance().setFacilityStatusOverride(context, facilityKey, status);
+        String targetDbStatus = "Ready";
+        if ("Maintenance".equalsIgnoreCase(status)) targetDbStatus = "Maintenance";
+        else if ("Cleaning".equalsIgnoreCase(status)) targetDbStatus = "Cleaning";
+        else if ("Occupied".equalsIgnoreCase(status) || "Unavailable".equalsIgnoreCase(status)) targetDbStatus = "Occupied";
 
-        if ("Available".equalsIgnoreCase(status)) {
+        ResortRepository.getInstance().setFacilityStatusOverride(context, item.getTitle(), targetDbStatus);
+        ResortRepository.getInstance().setFacilityStatusOverride(context, facilityKey, targetDbStatus);
+
+        String dbRoomId = mapKeyToDbRoomId(facilityKey);
+        String dbCourtId = mapKeyToDbCourtId(facilityKey);
+
+        if ("Ready".equalsIgnoreCase(targetDbStatus)) {
             maintPrefs.edit()
                     .remove(facilityKey + "_status")
                     .remove(facilityKey + "_start")
@@ -342,7 +330,7 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
                     (int) (System.currentTimeMillis() % 10000));
 
             maintPrefs.edit()
-                    .putString(facilityKey + "_status", status)
+                    .putString(facilityKey + "_status", targetDbStatus)
                     .putString(facilityKey + "_start", startDate)
                     .putString(facilityKey + "_end", endDate)
                     .putString(facilityKey + "_booking_id", maintBookingId)
@@ -355,8 +343,6 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
                 });
             }
 
-            String dbRoomId = mapKeyToDbRoomId(facilityKey);
-            String dbCourtId = mapKeyToDbCourtId(facilityKey);
             SupabaseClient.getInstance().createMaintenanceBlockBooking(
                     maintBookingId,
                     dbRoomId,
@@ -370,106 +356,108 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             );
         }
 
-        String dbRoomId = mapKeyToDbRoomId(facilityKey);
         if (dbRoomId != null) {
-            String dbStatus = "Ready";
-            if ("Maintenance".equalsIgnoreCase(status)) dbStatus = "Maintenance";
-            else if ("Cleaning".equalsIgnoreCase(status)) dbStatus = "Cleaning";
-            else if ("Unavailable".equalsIgnoreCase(status)) dbStatus = "Occupied";
-
             String roomNum = dbRoomId.replace("RM-", "");
             String roomType = "RM-103".equals(dbRoomId) ? "Deluxe" : "Standard";
             double rate = "RM-103".equals(dbRoomId) ? 3500.0 : 2500.0;
 
-            SupabaseClient.getInstance().updateRoomStatus(dbRoomId, roomNum, rate, 4, dbStatus, roomType, new SupabaseClient.DataCallback() {
+            SupabaseClient.getInstance().updateRoomStatus(dbRoomId, roomNum, rate, 4, targetDbStatus, roomType, new SupabaseClient.DataCallback() {
                 @Override public void onSuccess(String s) {}
                 @Override public void onError(String e) {}
             });
         }
 
-        Toast.makeText(context, "Updated " + item.getTitle() + " to " + status, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, item.getTitle() + " status set to " + targetDbStatus, Toast.LENGTH_SHORT).show();
     }
 
-    private void showUnavailableReasonDialog(Context context, CatalogItem item, OnReasonAndDatesSelectedListener onSelected) {
+    private void showSetStatusDialog(Context context, CatalogItem item, String facilityKey, String currentStatus, OnReasonAndDatesSelectedListener onSelected) {
         View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_select_unavailable_reason, null);
         TextView tvRoomSub = dialogView.findViewById(R.id.tvDialogRoomSub);
-        RadioButton radioMaintenance = dialogView.findViewById(R.id.radioMaintenance);
-        RadioButton radioCleaning = dialogView.findViewById(R.id.radioCleaning);
+        RadioButton radioReady = dialogView.findViewById(R.id.radioStatusReady);
+        RadioButton radioMaintenance = dialogView.findViewById(R.id.radioStatusMaintenance);
+        RadioButton radioCleaning = dialogView.findViewById(R.id.radioStatusCleaning);
+        RadioButton radioOccupied = dialogView.findViewById(R.id.radioStatusOccupied);
+        View layoutDates = dialogView.findViewById(R.id.layoutMaintenanceScheduleDates);
+        MaterialButton btnDateFrom = dialogView.findViewById(R.id.btnDialogDateFrom);
+        MaterialButton btnDateTo = dialogView.findViewById(R.id.btnDialogDateTo);
 
         if (tvRoomSub != null && item != null) {
-            tvRoomSub.setText("Select unavailability reason & schedule for " + item.getTitle());
+            tvRoomSub.setText("Select status for " + item.getTitle());
         }
 
-        final String[] selectedStart = {getTodayDateString()};
-        final String[] selectedEnd = {getTomorrowDateString()};
+        SharedPreferences maintPrefs = context.getSharedPreferences(MAINT_PREFS, Context.MODE_PRIVATE);
+        String savedStart = maintPrefs.getString(facilityKey + "_start", getTodayDateString());
+        String savedEnd = maintPrefs.getString(facilityKey + "_end", getTomorrowDateString());
 
-        LinearLayout dateBox = new LinearLayout(context);
-        dateBox.setOrientation(LinearLayout.VERTICAL);
-        dateBox.setPadding(16, 24, 16, 8);
+        final String[] selectedStart = {savedStart};
+        final String[] selectedEnd = {savedEnd};
 
-        TextView tvLabel = new TextView(context);
-        tvLabel.setText("Block Dates (Prevents User Bookings):");
-        tvLabel.setTypeface(null, Typeface.BOLD);
-        tvLabel.setTextSize(12f);
-        dateBox.addView(tvLabel);
+        if (btnDateFrom != null) btnDateFrom.setText("From: " + selectedStart[0]);
+        if (btnDateTo != null) btnDateTo.setText("To: " + selectedEnd[0]);
 
-        LinearLayout btnRow = new LinearLayout(context);
-        btnRow.setOrientation(LinearLayout.HORIZONTAL);
-        btnRow.setGravity(Gravity.CENTER_VERTICAL);
-        btnRow.setPadding(0, 10, 0, 0);
+        if (btnDateFrom != null) {
+            btnDateFrom.setOnClickListener(v -> pickDate(context, selectedStart[0], picked -> {
+                selectedStart[0] = picked;
+                btnDateFrom.setText("From: " + picked);
+                if (selectedEnd[0].compareTo(picked) <= 0) {
+                    selectedEnd[0] = addOneDay(picked);
+                    if (btnDateTo != null) btnDateTo.setText("To: " + selectedEnd[0]);
+                }
+            }));
+        }
 
-        MaterialButton btnFrom = new MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        LinearLayout.LayoutParams lp1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lp1.setMarginEnd(8);
-        btnFrom.setLayoutParams(lp1);
-        btnFrom.setText("From: " + selectedStart[0]);
-        btnFrom.setTextSize(11f);
+        if (btnDateTo != null) {
+            btnDateTo.setOnClickListener(v -> pickDate(context, selectedEnd[0], picked -> {
+                if (picked.compareTo(selectedStart[0]) <= 0) {
+                    selectedEnd[0] = addOneDay(selectedStart[0]);
+                } else {
+                    selectedEnd[0] = picked;
+                }
+                btnDateTo.setText("To: " + selectedEnd[0]);
+            }));
+        }
 
-        MaterialButton btnTo = new MaterialButton(context, null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        LinearLayout.LayoutParams lp2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lp2.setMarginStart(8);
-        btnTo.setLayoutParams(lp2);
-        btnTo.setText("To: " + selectedEnd[0]);
-        btnTo.setTextSize(11f);
-
-        btnFrom.setOnClickListener(v -> pickDate(context, selectedStart[0], picked -> {
-            selectedStart[0] = picked;
-            btnFrom.setText("From: " + picked);
-            if (selectedEnd[0].compareTo(picked) <= 0) {
-                selectedEnd[0] = addOneDay(picked);
-                btnTo.setText("To: " + selectedEnd[0]);
+        View.OnClickListener radioClickListener = v -> {
+            boolean isReady = radioReady != null && radioReady.isChecked();
+            if (layoutDates != null) {
+                layoutDates.setVisibility(isReady ? View.GONE : View.VISIBLE);
             }
-        }));
+        };
 
-        btnTo.setOnClickListener(v -> pickDate(context, selectedEnd[0], picked -> {
-            if (picked.compareTo(selectedStart[0]) <= 0) {
-                selectedEnd[0] = addOneDay(selectedStart[0]);
-            } else {
-                selectedEnd[0] = picked;
-            }
-            btnTo.setText("To: " + selectedEnd[0]);
-        }));
+        if (radioReady != null) radioReady.setOnClickListener(radioClickListener);
+        if (radioMaintenance != null) radioMaintenance.setOnClickListener(radioClickListener);
+        if (radioCleaning != null) radioCleaning.setOnClickListener(radioClickListener);
+        if (radioOccupied != null) radioOccupied.setOnClickListener(radioClickListener);
 
-        btnRow.addView(btnFrom);
-        btnRow.addView(btnTo);
-        dateBox.addView(btnRow);
-
-        if (dialogView instanceof ViewGroup) {
-            ((ViewGroup) dialogView).addView(dateBox);
+        if ("Maintenance".equalsIgnoreCase(currentStatus)) {
+            if (radioMaintenance != null) radioMaintenance.setChecked(true);
+            if (layoutDates != null) layoutDates.setVisibility(View.VISIBLE);
+        } else if ("Cleaning".equalsIgnoreCase(currentStatus)) {
+            if (radioCleaning != null) radioCleaning.setChecked(true);
+            if (layoutDates != null) layoutDates.setVisibility(View.VISIBLE);
+        } else if ("Occupied".equalsIgnoreCase(currentStatus) || "Unavailable".equalsIgnoreCase(currentStatus)) {
+            if (radioOccupied != null) radioOccupied.setChecked(true);
+            if (layoutDates != null) layoutDates.setVisibility(View.VISIBLE);
+        } else {
+            if (radioReady != null) radioReady.setChecked(true);
+            if (layoutDates != null) layoutDates.setVisibility(View.GONE);
         }
 
         new MaterialAlertDialogBuilder(context)
+                .setTitle("Set Facility Status")
                 .setView(dialogView)
-                .setPositiveButton("Next", (dialog, which) -> {
-                    String chosenReason = "Unavailable";
+                .setPositiveButton("Save Status", (dialog, which) -> {
+                    String chosenStatus = "Ready";
                     if (radioMaintenance != null && radioMaintenance.isChecked()) {
-                        chosenReason = "Maintenance";
+                        chosenStatus = "Maintenance";
                     } else if (radioCleaning != null && radioCleaning.isChecked()) {
-                        chosenReason = "Cleaning";
+                        chosenStatus = "Cleaning";
+                    } else if (radioOccupied != null && radioOccupied.isChecked()) {
+                        chosenStatus = "Occupied";
                     }
 
                     if (onSelected != null) {
-                        onSelected.onSelected(chosenReason, selectedStart[0], selectedEnd[0]);
+                        onSelected.onSelected(chosenStatus, selectedStart[0], selectedEnd[0]);
                     }
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())

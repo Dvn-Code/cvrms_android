@@ -129,12 +129,12 @@
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:paddingHorizontal="6dp"
-                    android:text="Set as Unavailable"
+                    android:text="Set Status"
                     android:textAllCaps="false"
                     android:textColor="#FFFFFF"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    app:backgroundTint="#C85A32"
+                    app:backgroundTint="#4D391A"
                     app:cornerRadius="18dp"
                     app:elevation="0dp" />
 

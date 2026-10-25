@@ -633,21 +633,33 @@ public class SuperAdminDashboardFragment extends Fragment {
 
     private void setupFacilityClickListeners(View view) {
         if (view == null) return;
+        View.OnClickListener goToRoomsTab = v -> {
+            if (getActivity() instanceof SuperAdminMainActivity) {
+                SuperAdminMainActivity activity = (SuperAdminMainActivity) getActivity();
+                BottomNavigationView navView = activity.findViewById(R.id.superAdminNavView);
+                if (navView != null) {
+                    navView.setSelectedItemId(R.id.nav_super_rooms);
+                } else {
+                    activity.loadFragment(new SuperAdminRoomsFragment());
+                }
+            }
+        };
+
         View tvManage = view.findViewById(R.id.tvManageFacilities);
-        if (tvManage != null) tvManage.setOnClickListener(v -> showManageFacilitiesDialog("Room 1"));
+        if (tvManage != null) tvManage.setOnClickListener(goToRoomsTab);
 
         View room1 = view.findViewById(R.id.room1Card);
-        if (room1 != null) room1.setOnClickListener(v -> showManageFacilitiesDialog("Room 1"));
+        if (room1 != null) room1.setOnClickListener(goToRoomsTab);
         View room2 = view.findViewById(R.id.room2Card);
-        if (room2 != null) room2.setOnClickListener(v -> showManageFacilitiesDialog("Room 2"));
+        if (room2 != null) room2.setOnClickListener(goToRoomsTab);
         View room3 = view.findViewById(R.id.room3Card);
-        if (room3 != null) room3.setOnClickListener(v -> showManageFacilitiesDialog("Room 3"));
+        if (room3 != null) room3.setOnClickListener(goToRoomsTab);
         View court1 = view.findViewById(R.id.court1Card);
-        if (court1 != null) court1.setOnClickListener(v -> showManageFacilitiesDialog("Court 1"));
+        if (court1 != null) court1.setOnClickListener(goToRoomsTab);
         View court2 = view.findViewById(R.id.court2Card);
-        if (court2 != null) court2.setOnClickListener(v -> showManageFacilitiesDialog("Court 2"));
+        if (court2 != null) court2.setOnClickListener(goToRoomsTab);
         View court3 = view.findViewById(R.id.court3Card);
-        if (court3 != null) court3.setOnClickListener(v -> showManageFacilitiesDialog("Court 3"));
+        if (court3 != null) court3.setOnClickListener(goToRoomsTab);
     }
 
     private void showManageFacilitiesDialog(String defaultFacility) {

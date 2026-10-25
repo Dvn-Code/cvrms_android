@@ -213,15 +213,24 @@ public class EmployeeRepository {
                 for (int i = 0; i < array.length(); i++) {
                     JSONObject obj = array.getJSONObject(i);
                     int id = obj.optInt("id", i + 1);
+                    String empEmail = obj.optString("email", "").trim().toLowerCase(Locale.US);
+                    String empUser = obj.optString("username", "").trim().toLowerCase(Locale.US);
+
+                    // Filter out deprecated built-in accounts
+                    if (empEmail.equals("manager@casavista.com") || empEmail.equals("frontdesk@casavista.com") || empEmail.equals("cashier@casavista.com")
+                            || empUser.equals("manager") || empUser.equals("frontdesk") || empUser.equals("cashier")) {
+                        continue;
+                    }
+
                     Employee emp = new Employee(
                             id,
                             obj.optString("staff_id", String.format(Locale.US, "STF-%03d", id)),
                             obj.optString("name", ""),
                             obj.optString("department", ""),
-                            obj.optString("role", "Front Desk"),
+                            obj.optString("role", "Admin"),
                             obj.optString("username", ""),
                             obj.optString("email", ""),
-                            obj.optString("password", "Staff123!")
+                            obj.optString("password", "Admin123!")
                     );
                     employeeList.add(emp);
                 }
@@ -232,6 +241,8 @@ public class EmployeeRepository {
 
         if (employeeList.isEmpty()) {
             populateDefaults(context);
+        } else {
+            saveToPrefs(context);
         }
     }
 
@@ -239,18 +250,6 @@ public class EmployeeRepository {
         employeeList.add(new Employee(
                 1, "STF-001", "Juan Dela Cruz", "Executive Operations", "Admin",
                 "admin", "admin@casavista.com", "Admin123!"
-        ));
-        employeeList.add(new Employee(
-                2, "STF-002", "Maria Clara Santos", "Management & Finance", "Manager",
-                "manager", "manager@casavista.com", "Manager123!"
-        ));
-        employeeList.add(new Employee(
-                3, "STF-003", "Angela Reyes", "Front Office & Guest Relations", "Front Desk",
-                "frontdesk", "frontdesk@casavista.com", "FrontDesk123!"
-        ));
-        employeeList.add(new Employee(
-                4, "STF-004", "Carlo Mendoza", "POS & Billing Counter", "Cashier",
-                "cashier", "cashier@casavista.com", "Cashier123!"
         ));
         saveToPrefs(context);
     }

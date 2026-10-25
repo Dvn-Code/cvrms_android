@@ -584,19 +584,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private boolean isValidStaffPassword(String roleKey, String password) {
         if (password == null) return false;
-        if (password.equals("admin123") || password.equals("Admin123!") || password.equals("Staff123!")) {
-            return true;
-        }
-        switch (roleKey) {
-            case "Manager":
-                return password.equals("manager123") || password.equals("Manager123!");
-            case "Front Desk":
-                return password.equals("frontdesk123") || password.equals("FrontDesk123!");
-            case "Cashier":
-                return password.equals("cashier123") || password.equals("Cashier123!");
-            default:
-                return false;
-        }
+        return password.equals("Admin123!") || password.equals("admin123");
     }
 
     private void performLogin() {
@@ -619,12 +607,22 @@ public class LoginActivity extends AppCompatActivity {
 
         // 1. SuperAdmin Login Check
         if ((lowerIdent.equals("superadmin") || lowerIdent.equals("superadmin@casavista.com"))
-                && (password.equals("superadmin123") || password.equals("SuperAdmin123!"))) {
+                && (password.equals("SuperAdmin123!") || password.equals("superadmin123"))) {
             Toast.makeText(this, "Welcome Super Admin!", Toast.LENGTH_SHORT).show();
             navigateBasedOnRole("SUPER_ADMIN");
             return;
         }
-        // Check SuperAdmin-managed Staff Accounts in EmployeeRepository (supports custom usernames & passwords)
+
+        // 2. Built-in Admin Account Check
+        if ((lowerIdent.equals("admin") || lowerIdent.equals("admin@casavista.com"))
+                && isValidStaffPassword("Admin", password)) {
+            saveStaffSession("STF-001", "Juan Dela Cruz", "admin@casavista.com", "Admin");
+            Toast.makeText(this, "Welcome Administrator!", Toast.LENGTH_SHORT).show();
+            navigateBasedOnRole("ADMIN");
+            return;
+        }
+
+        // Check SuperAdmin-managed Staff Accounts in EmployeeRepository (custom accounts created by Super Admin)
         com.example.casavista.models.Employee matchedStaff =
                 com.example.casavista.data.EmployeeRepository.getInstance().authenticateStaff(this, identifier, password);
         if (matchedStaff != null) {
@@ -632,36 +630,6 @@ public class LoginActivity extends AppCompatActivity {
             Toast.makeText(this, "Welcome " + matchedStaff.getName() + " (" + matchedStaff.getRole() + ")!", Toast.LENGTH_SHORT).show();
             navigateBasedOnRole("ADMIN");
             return;
-        }
-        // 2. Built-in Unified @casavista.com Staff Accounts (Admin, Manager, Front Desk, Cashier)
-        if (lowerIdent.equals("admin") || lowerIdent.equals("admin@casavista.com")) {
-            if (isValidStaffPassword("Admin", password)) {
-                saveStaffSession("STF-001", "Juan Dela Cruz", "admin@casavista.com", "Admin");
-                Toast.makeText(this, "Welcome Head Administrator!", Toast.LENGTH_SHORT).show();
-                navigateBasedOnRole("ADMIN");
-                return;
-            }
-        } else if (lowerIdent.equals("manager") || lowerIdent.equals("manager@casavista.com")) {
-            if (isValidStaffPassword("Manager", password)) {
-                saveStaffSession("STF-002", "Maria Clara Santos", "manager@casavista.com", "Manager");
-                Toast.makeText(this, "Welcome Resort Manager!", Toast.LENGTH_SHORT).show();
-                navigateBasedOnRole("ADMIN");
-                return;
-            }
-        } else if (lowerIdent.equals("frontdesk") || lowerIdent.equals("frontdesk@casavista.com")) {
-            if (isValidStaffPassword("Front Desk", password)) {
-                saveStaffSession("STF-003", "Angela Reyes", "frontdesk@casavista.com", "Front Desk");
-                Toast.makeText(this, "Welcome Front Desk Officer!", Toast.LENGTH_SHORT).show();
-                navigateBasedOnRole("ADMIN");
-                return;
-            }
-        } else if (lowerIdent.equals("cashier") || lowerIdent.equals("cashier@casavista.com")) {
-            if (isValidStaffPassword("Cashier", password)) {
-                saveStaffSession("STF-004", "Carlo Mendoza", "cashier@casavista.com", "Cashier");
-                Toast.makeText(this, "Welcome Billing Cashier!", Toast.LENGTH_SHORT).show();
-                navigateBasedOnRole("ADMIN");
-                return;
-            }
         }
 
         // 3. Dynamic Staff Login for any @casavista.com staff email or STF-XXX ID from resort.staff table
