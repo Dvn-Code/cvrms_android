@@ -336,10 +336,14 @@
                         android:background="@drawable/bg_card_gradient_overlay" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|center_horizontal"
                         android:layout_marginBottom="10dp"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:paddingHorizontal="2dp"
                         android:text="Rooms (5)"
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"
@@ -377,10 +381,14 @@
                         android:background="@drawable/bg_card_gradient_overlay" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|center_horizontal"
                         android:layout_marginBottom="10dp"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:paddingHorizontal="2dp"
                         android:text="Pickleball (3)"
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"
@@ -418,10 +426,14 @@
                         android:background="@drawable/bg_card_gradient_overlay" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|center_horizontal"
                         android:layout_marginBottom="10dp"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:paddingHorizontal="2dp"
                         android:text="Basketball (1)"
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"
@@ -459,10 +471,14 @@
                         android:background="@drawable/bg_card_gradient_overlay" />
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_gravity="bottom|center_horizontal"
                         android:layout_marginBottom="10dp"
+                        android:gravity="center"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        android:paddingHorizontal="2dp"
                         android:text="Buyout"
                         android:textColor="#FFFFFF"
                         android:textSize="11sp"

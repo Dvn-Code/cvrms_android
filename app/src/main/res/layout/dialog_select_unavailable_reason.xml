@@ -1,65 +1,72 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:padding="20dp">
+    android:fillViewport="true"
+    android:overScrollMode="never">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Select Unavailability Reason"
-        android:textColor="@color/admin_text_primary"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/tvDialogRoomSub"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:text="Choose why this facility is being set as unavailable"
-        android:textColor="@color/admin_text_secondary"
-        android:textSize="12sp" />
-
-    <RadioGroup
-        android:id="@+id/radioGroupReasons"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:padding="20dp">
 
-        <RadioButton
-            android:id="@+id/radioMaintenance"
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingVertical="8dp"
-            android:text="Maintenance (Repairs / Servicing)"
+            android:text="Select Unavailability Reason"
             android:textColor="@color/admin_text_primary"
-            android:textSize="14sp"
+            android:textSize="18sp"
             android:textStyle="bold" />
 
-        <RadioButton
-            android:id="@+id/radioCleaning"
+        <TextView
+            android:id="@+id/tvDialogRoomSub"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:text="Choose why this facility is being set as unavailable"
+            android:textColor="@color/admin_text_secondary"
+            android:textSize="12sp" />
+
+        <RadioGroup
+            android:id="@+id/radioGroupReasons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingVertical="8dp"
-            android:text="Cleaning (Housekeeping / Deep Clean)"
-            android:textColor="@color/admin_text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/radioGeneralUnavailable"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:checked="true"
-            android:paddingVertical="8dp"
-            android:text="Unavailable (General / Off-limits)"
-            android:textColor="@color/admin_text_primary"
-            android:textSize="14sp"
-            android:textStyle="bold" />
-    </RadioGroup>
+            <RadioButton
+                android:id="@+id/radioMaintenance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Maintenance (Repairs / Servicing)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
 
-</LinearLayout>
+            <RadioButton
+                android:id="@+id/radioCleaning"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:text="Cleaning (Housekeeping / Deep Clean)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <RadioButton
+                android:id="@+id/radioGeneralUnavailable"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:paddingVertical="8dp"
+                android:text="Unavailable (General / Off-limits)"
+                android:textColor="@color/admin_text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+        </RadioGroup>
+
+    </LinearLayout>
+</ScrollView>

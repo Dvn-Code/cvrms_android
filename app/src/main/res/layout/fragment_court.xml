@@ -296,16 +296,15 @@
         </LinearLayout>
 
         <!-- TIME SLOTS SECTION -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
+            android:layout_marginTop="16dp"
+            android:orientation="vertical">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
                 android:text="Select Time Slot"
                 android:textColor="@color/court_dark_brown"
                 android:textSize="14sp"
@@ -314,12 +313,11 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:text="☀️ 06:00-18:00 Day | 🌙 18:00-22:00 Night"
+                android:layout_marginTop="2dp"
+                android:text="☀️ 06:00-18:00 Daytime | 🌙 18:00-22:00 Nighttime"
                 android:textColor="@color/text_muted"
                 android:textSize="11sp" />
-        </RelativeLayout>
+        </LinearLayout>
 
         <GridLayout
             android:layout_width="match_parent"

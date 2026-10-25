@@ -2,11 +2,12 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="160dp"
+    android:layout_height="220dp"
     android:layout_marginHorizontal="16dp"
     android:layout_marginVertical="8dp"
     app:cardCornerRadius="18dp"
-    app:cardElevation="2dp"
+    app:cardElevation="0dp"
+    app:cardMaxElevation="0dp"
     app:strokeColor="@color/border_soft"
     app:strokeWidth="1dp">
 
@@ -29,17 +30,17 @@
             android:background="@drawable/bg_card_gradient_overlay" />
 
         <!-- CARD INNER CONTENT LAYER WITH SPACIOUS PADDING -->
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:orientation="vertical"
             android:padding="16dp">
 
             <!-- TOP ROW: TITLE & STATUS BADGE -->
             <RelativeLayout
                 android:id="@+id/layoutTopHeader"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentTop="true">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:id="@+id/tvBookingTitle"
@@ -76,7 +77,6 @@
                 android:id="@+id/layoutMidDetails"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/layoutTopHeader"
                 android:layout_marginTop="4dp"
                 android:orientation="vertical">
 
@@ -112,11 +112,16 @@
                     android:textSize="11sp" />
             </LinearLayout>
 
-            <!-- BOTTOM ROW: PRICE & CANCEL BUTTON -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- BOTTOM AREA: PRICE & ACTION BUTTONS -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true">
+                android:layout_marginTop="4dp">
 
                 <TextView
                     android:id="@+id/tvBookingPrice"
@@ -129,54 +134,58 @@
                     android:textSize="16sp"
                     android:textStyle="bold" />
 
-                <LinearLayout
-                    android:id="@+id/layoutCancelAction"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
-                    android:orientation="horizontal">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnPayMaya"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="6dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="10dp"
-                        android:text="Pay with Maya (Test)"
-                        android:textAllCaps="false"
-                        android:textColor="#FFFFFF"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        android:visibility="gone"
-                        app:backgroundTint="#009E49"
-                        app:cornerRadius="16dp"
-                        app:elevation="0dp" />
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnCancelBooking"
-                        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
-                        android:layout_width="wrap_content"
-                        android:layout_height="32dp"
-                        android:insetTop="0dp"
-                        android:insetBottom="0dp"
-                        android:paddingHorizontal="10dp"
-                        android:text="Cancel"
-                        android:textAllCaps="false"
-                        android:textColor="#FFFFFF"
-                        android:textSize="10sp"
-                        android:textStyle="bold"
-                        app:backgroundTint="#88000000"
-                        app:cornerRadius="16dp"
-                        app:elevation="0dp"
-                        app:strokeColor="#88FFFFFF"
-                        app:strokeWidth="1dp" />
-                </LinearLayout>
             </RelativeLayout>
 
-        </RelativeLayout>
+            <!-- ACTION BUTTONS ROW (PAY WITH MAYA & CANCEL) -->
+            <LinearLayout
+                android:id="@+id/layoutCancelAction"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnPayMaya"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_marginEnd="6dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="Pay with Maya"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    app:backgroundTint="#009E49"
+                    app:cornerRadius="18dp"
+                    app:elevation="0dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCancelBooking"
+                    style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="36dp"
+                    android:layout_weight="1"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:paddingHorizontal="6dp"
+                    android:text="Cancel"
+                    android:textAllCaps="false"
+                    android:textColor="#FFFFFF"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#88000000"
+                    app:cornerRadius="18dp"
+                    app:elevation="0dp"
+                    app:strokeColor="#88FFFFFF"
+                    app:strokeWidth="1dp" />
+            </LinearLayout>
+
+        </LinearLayout>
     </FrameLayout>
 </com.google.android.material.card.MaterialCardView>
