@@ -48,13 +48,27 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
         void onSelected(String reason, String startDate, String endDate);
     }
 
+    public interface OnRoomDeleteListener {
+        void onRoomDeleted(CatalogItem item);
+    }
+
     private List<CatalogItem> list;
     private final OnRoomStatusChangeListener listener;
+    private OnRoomDeleteListener deleteListener;
     private final Set<String> todayGuestBookedKeys = new HashSet<>();
 
     public SuperAdminRoomAdapter(List<CatalogItem> list, OnRoomStatusChangeListener listener) {
+        this(list, listener, null);
+    }
+
+    public SuperAdminRoomAdapter(List<CatalogItem> list, OnRoomStatusChangeListener listener, OnRoomDeleteListener deleteListener) {
         this.list = list;
         this.listener = listener;
+        this.deleteListener = deleteListener;
+    }
+
+    public void setOnRoomDeleteListener(OnRoomDeleteListener deleteListener) {
+        this.deleteListener = deleteListener;
     }
 
     public void updateList(List<CatalogItem> newList) {
@@ -83,16 +97,20 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
     }
 
     private String mapKeyToDbRoomId(String facilityKey) {
+        if (facilityKey == null) return null;
         if ("Room 1".equalsIgnoreCase(facilityKey)) return "RM-101";
         if ("Room 2".equalsIgnoreCase(facilityKey)) return "RM-102";
         if ("Room 3".equalsIgnoreCase(facilityKey)) return "RM-103";
+        if (facilityKey.toUpperCase(Locale.US).startsWith("RM-")) return facilityKey.toUpperCase(Locale.US);
         return null;
     }
 
     private String mapKeyToDbCourtId(String facilityKey) {
-        if ("Court 1".equalsIgnoreCase(facilityKey)) return "CRT-01";
-        if ("Court 2".equalsIgnoreCase(facilityKey)) return "CRT-02";
-        if ("Court 3".equalsIgnoreCase(facilityKey)) return "CRT-03";
+        if (facilityKey == null) return null;
+        if ("Court 1".equalsIgnoreCase(facilityKey)) return "CRT-PB1";
+        if ("Court 2".equalsIgnoreCase(facilityKey)) return "CRT-PB2";
+        if ("Court 3".equalsIgnoreCase(facilityKey)) return "CRT-BK1";
+        if (facilityKey.toUpperCase(Locale.US).startsWith("CRT-")) return facilityKey.toUpperCase(Locale.US);
         return null;
     }
 
@@ -254,6 +272,46 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
 
             holder.btnToggleStatus.setOnClickListener(unavailableListener);
             holder.itemView.setOnClickListener(unavailableListener);
+        }
+
+        if (holder.btnDeleteRoom != null) {
+            holder.btnDeleteRoom.setOnClickListener(v -> {
+                new MaterialAlertDialogBuilder(context)
+                        .setTitle("Delete Facility")
+                        .setMessage("Are you sure you want to permanently delete \"" + item.getTitle() + "\" from inventory and Supabase database?")
+                        .setCancelable(false)
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            String fKey = normalizeFacilityKey(item.getTitle());
+                            String rId = mapKeyToDbRoomId(fKey);
+                            if (rId == null && item.getTitle() != null && item.getTitle().toUpperCase(Locale.US).contains("RM-")) {
+                                rId = item.getTitle().replaceAll(".*(RM-\\w+).*", "$1");
+                            }
+                            String cId = mapKeyToDbCourtId(fKey);
+                            if (cId == null && item.getTitle() != null && item.getTitle().toUpperCase(Locale.US).contains("CRT-")) {
+                                cId = item.getTitle().replaceAll(".*(CRT-\\w+).*", "$1");
+                            }
+
+                            if (rId != null) {
+                                SupabaseClient.getInstance().deleteRoom(rId, new SupabaseClient.DataCallback() {
+                                    @Override public void onSuccess(String s) {}
+                                    @Override public void onError(String e) {}
+                                });
+                            } else if (cId != null) {
+                                SupabaseClient.getInstance().deleteCourt(cId, new SupabaseClient.DataCallback() {
+                                    @Override public void onSuccess(String s) {}
+                                    @Override public void onError(String e) {}
+                                });
+                            }
+
+                            ResortRepository.getInstance().deleteCatalogItem(context, item);
+                            Toast.makeText(context, item.getTitle() + " has been deleted.", Toast.LENGTH_SHORT).show();
+                            if (deleteListener != null) {
+                                deleteListener.onRoomDeleted(item);
+                            }
+                        })
+                        .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .show();
+            });
         }
     }
 
@@ -511,7 +569,7 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgThumb;
         TextView tvTitle, tvSubtitle, tvPrice, tvStatusBadge;
-        MaterialButton btnToggleStatus;
+        MaterialButton btnToggleStatus, btnDeleteRoom;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -521,6 +579,7 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
             tvPrice = itemView.findViewById(R.id.tvRoomPrice);
             tvStatusBadge = itemView.findViewById(R.id.tvRoomStatusBadge);
             btnToggleStatus = itemView.findViewById(R.id.btnToggleRoomStatus);
+            btnDeleteRoom = itemView.findViewById(R.id.btnDeleteRoom);
         }
     }
 }

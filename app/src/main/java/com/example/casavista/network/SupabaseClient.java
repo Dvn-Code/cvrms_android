@@ -827,6 +827,148 @@ public class SupabaseClient {
         }).start();
     }
 
+    public void createRoom(JSONObject roomPayload, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/rooms";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json; utf-8");
+                applyStaffHeaders(conn);
+                conn.setDoOutput(true);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = roomPayload.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8)
+                );
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                String respStr = response.toString();
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(respStr);
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + respStr);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void deleteRoom(String roomId, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/rooms/" + URLEncoder.encode(roomId, "UTF-8");
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("DELETE");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess("Room deleted successfully");
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + " on room deletion");
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void createCourt(JSONObject courtPayload, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/courts";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json; utf-8");
+                applyStaffHeaders(conn);
+                conn.setDoOutput(true);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = courtPayload.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(
+                        new InputStreamReader(code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8)
+                );
+                StringBuilder response = new StringBuilder();
+                String responseLine;
+                while ((responseLine = br.readLine()) != null) {
+                    response.append(responseLine.trim());
+                }
+
+                String respStr = response.toString();
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(respStr);
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + respStr);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void deleteCourt(String courtId, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/courts/" + URLEncoder.encode(courtId, "UTF-8");
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("DELETE");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess("Court deleted successfully");
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + " on court deletion");
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
     /**
      * SAFE SESSION CACHE CLEAR:
      * Previously, this method looped through every booking in Supabase and called

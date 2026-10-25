@@ -504,6 +504,7 @@ public class CatalogFragment extends Fragment {
         new MaterialAlertDialogBuilder(safeDialogContext)
                 .setTitle("Reserve " + item.getTitle())
                 .setView(dialogView)
+                .setCancelable(false)
                 .setPositiveButton("Confirm Reservation", (dialog, which) -> {
                     String chosenPayment = spinnerPayment != null ? spinnerPayment.getSelectedItem().toString() : "GCash (Cashless E-Wallet)";
                     String mobileNum = etAccountMobileNumber != null ? etAccountMobileNumber.getText().toString().trim() : "";
@@ -650,6 +651,7 @@ public class CatalogFragment extends Fragment {
                                         new MaterialAlertDialogBuilder(attachedContext)
                                                 .setTitle("Hold Created! ⏱️")
                                                 .setMessage("Reserved! You have 15 minutes to finalize payment before this room is released.\nBooking ID: " + finalBookingId + "\nAmount Due Now: " + String.format(Locale.US, "₱%,.2f", finalAmountDueNow) + "\n\nWould you like to pay with Maya Sandbox now?")
+                                                .setCancelable(false)
                                                 .setPositiveButton("Pay Now with Maya", (d, w) -> {
                                                     if (!isAdded() || getContext() == null) return;
                                                     filterCatalog(currentCategory);

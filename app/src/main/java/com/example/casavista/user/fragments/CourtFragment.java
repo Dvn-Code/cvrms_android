@@ -788,6 +788,7 @@ public class CourtFragment extends Fragment {
                 .setTitle("Court Reservation Checkout")
                 .setMessage("Reserving " + selectedCourt + " (" + selectedSport + ") for " + formattedCourtDate + "\nSlot: " + selectedTimeSlot + " (" + isNightText + ")" + paddleDetail + "\nTotal Rate: ₱" + calculatedTotalPrice)
                 .setView(container)
+                .setCancelable(false)
                 .setPositiveButton("Confirm & Pay", (dialog, which) -> {
                     String chosenPayment = spinner.getSelectedItem() != null ? spinner.getSelectedItem().toString() : "GCash (Cashless E-Wallet)";
                     String mobileNum = etMobile.getText() != null ? etMobile.getText().toString().trim() : "";
@@ -839,6 +840,7 @@ public class CourtFragment extends Fragment {
                         payload.put("staff_id", "STF-001");
                         payload.put("court_id", courtIdMapped);
                         payload.put("booking_date", dateIso);
+                        payload.put("court_date", dateIso);
                         payload.put("start_time", startTimeStr);
                         payload.put("end_time", endTimeStr);
                         payload.put("paddle_count", paddleCount);
@@ -906,6 +908,7 @@ public class CourtFragment extends Fragment {
                                         new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
                                                 .setTitle("Hold Created! ⏱️")
                                                 .setMessage("Reserved! You have 15 minutes to finalize payment before this slot is released.\nBooking ID: " + finalBookingId + "\nAmount Due Now: ₱" + finalAmountDueNow + "\n\nWould you like to pay with Maya Sandbox now?")
+                                                .setCancelable(false)
                                                 .setPositiveButton("Pay Now with Maya", (d, w) -> {
                                                     if (!isAdded() || getContext() == null) return;
                                                     com.example.casavista.dialogs.MayaTestPaymentDialog.show(

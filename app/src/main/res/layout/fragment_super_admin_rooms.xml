@@ -62,6 +62,40 @@
         </com.google.android.material.card.MaterialCardView>
     </RelativeLayout>
 
+    <!-- ACTION ROW: INVENTORY HEADING & ADD FACILITY BUTTON -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Facility Inventory &amp; Status"
+            android:textColor="@color/admin_text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnAddFacility"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:paddingHorizontal="14dp"
+            android:text="+ Add Facility"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            app:backgroundTint="#4D391A"
+            app:cornerRadius="18dp" />
+    </LinearLayout>
+
     <!-- CATEGORY FILTER CHIPS -->
     <HorizontalScrollView
         android:layout_width="match_parent"

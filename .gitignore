@@ -34,3 +34,11 @@ Thumbs.db
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Separate Backend repository files
+backend/
+requirements.txt
+server.js
+package.json
+node_modules/
+

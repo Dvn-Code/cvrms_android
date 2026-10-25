@@ -67,12 +67,70 @@ public class ResortRepository {
     public String getCurrentUserEmail() { return currentUserEmail; }
     public void setCurrentUserEmail(String currentUserEmail) { this.currentUserEmail = currentUserEmail; }
 
+    public void saveCatalogToPrefs(Context context) {
+        if (context == null) return;
+        try {
+            JSONArray arr = new JSONArray();
+            for (CatalogItem item : catalogItems) {
+                if (item == null || item.getTitle() == null) continue;
+                JSONObject obj = new JSONObject();
+                obj.put("title", item.getTitle());
+                obj.put("subtitle", item.getSubtitle() != null ? item.getSubtitle() : "");
+                obj.put("category", item.getCategory() != null ? item.getCategory() : "Room");
+                obj.put("guests", item.getGuests() != null ? item.getGuests() : "4 Guests");
+                obj.put("price", item.getPrice() != null ? item.getPrice() : "₱2,500 / day");
+                obj.put("badge", item.getBadge() != null ? item.getBadge() : "Standard");
+                obj.put("imageResId", item.getImageResId());
+                obj.put("imageUrl", item.getImageUrl() != null ? item.getImageUrl() : "");
+                arr.put(obj);
+            }
+            SharedPreferences prefs = context.getSharedPreferences(PREF_CATALOG, Context.MODE_PRIVATE);
+            prefs.edit().putString("persisted_catalog_items_v2", arr.toString()).apply();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void loadCatalogFromPrefs(Context context) {
+        if (context == null) return;
+        SharedPreferences prefs = context.getSharedPreferences(PREF_CATALOG, Context.MODE_PRIVATE);
+        String rawJson = prefs.getString("persisted_catalog_items_v2", null);
+        if (rawJson != null && !rawJson.isEmpty()) {
+            try {
+                JSONArray arr = new JSONArray(rawJson);
+                if (arr.length() > 0) {
+                    List<CatalogItem> loaded = new ArrayList<>();
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject obj = arr.getJSONObject(i);
+                        CatalogItem item = new CatalogItem(
+                                obj.optString("title", ""),
+                                obj.optString("subtitle", ""),
+                                obj.optString("category", "Room"),
+                                obj.optString("guests", "4 Guests"),
+                                obj.optString("price", "₱2,500 / day"),
+                                obj.optString("badge", "Standard"),
+                                obj.optInt("imageResId", R.drawable.ic_casavista_artwork),
+                                obj.optString("imageUrl", null)
+                        );
+                        loaded.add(item);
+                    }
+                    this.catalogItems = loaded;
+                    return;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        initDefaultCatalog();
+    }
+
     public List<CatalogItem> getCatalogItems() {
         return catalogItems;
     }
 
     public void loadSavedImages(Context context) {
         if (context == null) return;
+        loadCatalogFromPrefs(context);
         SharedPreferences prefs = context.getSharedPreferences(PREF_CATALOG, Context.MODE_PRIVATE);
         for (CatalogItem item : catalogItems) {
             if (item.getTitle() != null) {
@@ -98,11 +156,48 @@ public class ResortRepository {
                 break;
             }
         }
+        if (context != null) saveCatalogToPrefs(context);
     }
 
     public void addCatalogItem(CatalogItem item) {
+        addCatalogItem(null, item);
+    }
+
+    public void addCatalogItem(Context context, CatalogItem item) {
         if (item != null) {
-            catalogItems.add(item);
+            // Check if item already exists
+            boolean exists = false;
+            for (int i = 0; i < catalogItems.size(); i++) {
+                if (catalogItems.get(i).getTitle().equalsIgnoreCase(item.getTitle())) {
+                    catalogItems.set(i, item);
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                catalogItems.add(item);
+            }
+            if (context != null) {
+                saveCatalogToPrefs(context);
+            }
+        }
+    }
+
+    public void deleteCatalogItem(Context context, CatalogItem item) {
+        if (item != null && item.getTitle() != null) {
+            deleteCatalogItemByTitle(context, item.getTitle());
+        }
+    }
+
+    public void deleteCatalogItemByTitle(Context context, String title) {
+        if (title == null || title.trim().isEmpty()) return;
+        for (int i = catalogItems.size() - 1; i >= 0; i--) {
+            if (title.equalsIgnoreCase(catalogItems.get(i).getTitle())) {
+                catalogItems.remove(i);
+            }
+        }
+        if (context != null) {
+            saveCatalogToPrefs(context);
         }
     }
 

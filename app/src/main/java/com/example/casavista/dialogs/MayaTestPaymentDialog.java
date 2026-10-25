@@ -154,6 +154,7 @@ public class MayaTestPaymentDialog {
         new MaterialAlertDialogBuilder(context)
                 .setTitle("Payment Verified! 🎉")
                 .setMessage("Your Maya payment (₱" + String.format(Locale.US, "%.2f", amount) + ") was captured successfully.\nBooking " + bookingId + " status updated to Confirmed in Supabase.")
+                .setCancelable(false)
                 .setPositiveButton("OK", (d, w) -> {
                     if (listener != null) {
                         listener.onPaymentCompleted(true, bookingId);
