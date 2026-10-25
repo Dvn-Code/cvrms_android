@@ -668,66 +668,43 @@ public class AdminDashboardFragment extends Fragment {
         final String[] selectedStartDate = {getTodayDateString()};
         final String[] selectedEndDate = {getTomorrowDateString()};
 
-        LinearLayout layoutDateRange = new LinearLayout(requireContext());
-        layoutDateRange.setOrientation(LinearLayout.VERTICAL);
-        layoutDateRange.setPadding(8, 24, 8, 8);
+        View layoutDateRange = dialogView.findViewById(R.id.layoutMaintenanceDates);
+        View cardMaintStartDate = dialogView.findViewById(R.id.cardMaintStartDate);
+        TextView tvMaintStartDate = dialogView.findViewById(R.id.tvMaintStartDate);
+        View cardMaintEndDate = dialogView.findViewById(R.id.cardMaintEndDate);
+        TextView tvMaintEndDate = dialogView.findViewById(R.id.tvMaintEndDate);
 
-        TextView tvDateSectionLabel = new TextView(requireContext());
-        tvDateSectionLabel.setText("Block / Maintenance Schedule (Blocks User Bookings):");
-        tvDateSectionLabel.setTypeface(null, Typeface.BOLD);
-        tvDateSectionLabel.setTextSize(13f);
-        tvDateSectionLabel.setTextColor(Color.parseColor("#374151"));
-        layoutDateRange.addView(tvDateSectionLabel);
+        if (tvMaintStartDate != null) tvMaintStartDate.setText(selectedStartDate[0]);
+        if (tvMaintEndDate != null) tvMaintEndDate.setText(selectedEndDate[0]);
 
-        LinearLayout rowDates = new LinearLayout(requireContext());
-        rowDates.setOrientation(LinearLayout.HORIZONTAL);
-        rowDates.setGravity(Gravity.CENTER_VERTICAL);
-        rowDates.setPadding(0, 12, 0, 0);
+        if (cardMaintStartDate != null) {
+            cardMaintStartDate.setOnClickListener(v -> showDatePicker(selectedStartDate[0], picked -> {
+                selectedStartDate[0] = picked;
+                if (tvMaintStartDate != null) tvMaintStartDate.setText(picked);
+                if (selectedEndDate[0].compareTo(picked) <= 0) {
+                    selectedEndDate[0] = addOneDay(picked);
+                    if (tvMaintEndDate != null) tvMaintEndDate.setText(selectedEndDate[0]);
+                }
+            }));
+        }
 
-        MaterialButton btnStartDate = new MaterialButton(requireContext(), null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        LinearLayout.LayoutParams lpBtn1 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lpBtn1.setMarginEnd(8);
-        btnStartDate.setLayoutParams(lpBtn1);
-        btnStartDate.setText("From: " + selectedStartDate[0]);
-        btnStartDate.setTextSize(11f);
-
-        MaterialButton btnEndDate = new MaterialButton(requireContext(), null, com.google.android.material.R.attr.materialButtonOutlinedStyle);
-        LinearLayout.LayoutParams lpBtn2 = new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f);
-        lpBtn2.setMarginStart(8);
-        btnEndDate.setLayoutParams(lpBtn2);
-        btnEndDate.setText("To: " + selectedEndDate[0]);
-        btnEndDate.setTextSize(11f);
-
-        btnStartDate.setOnClickListener(v -> showDatePicker(selectedStartDate[0], picked -> {
-            selectedStartDate[0] = picked;
-            btnStartDate.setText("From: " + picked);
-            if (selectedEndDate[0].compareTo(picked) <= 0) {
-                selectedEndDate[0] = addOneDay(picked);
-                btnEndDate.setText("To: " + selectedEndDate[0]);
-            }
-        }));
-
-        btnEndDate.setOnClickListener(v -> showDatePicker(selectedEndDate[0], picked -> {
-            if (picked.compareTo(selectedStartDate[0]) <= 0) {
-                Toast.makeText(requireContext(), "End date must be after start date.", Toast.LENGTH_SHORT).show();
-                selectedEndDate[0] = addOneDay(selectedStartDate[0]);
-            } else {
-                selectedEndDate[0] = picked;
-            }
-            btnEndDate.setText("To: " + selectedEndDate[0]);
-        }));
-
-        rowDates.addView(btnStartDate);
-        rowDates.addView(btnEndDate);
-        layoutDateRange.addView(rowDates);
-
-        if (dialogView instanceof ViewGroup) {
-            ((ViewGroup) dialogView).addView(layoutDateRange);
+        if (cardMaintEndDate != null) {
+            cardMaintEndDate.setOnClickListener(v -> showDatePicker(selectedEndDate[0], picked -> {
+                if (picked.compareTo(selectedStartDate[0]) <= 0) {
+                    Toast.makeText(requireContext(), "End date must be after start date.", Toast.LENGTH_SHORT).show();
+                    selectedEndDate[0] = addOneDay(selectedStartDate[0]);
+                } else {
+                    selectedEndDate[0] = picked;
+                }
+                if (tvMaintEndDate != null) tvMaintEndDate.setText(selectedEndDate[0]);
+            }));
         }
 
         View.OnClickListener radioToggleListener = v -> {
             boolean isAvailableChecked = radioAvailable != null && radioAvailable.isChecked();
-            layoutDateRange.setVisibility(isAvailableChecked ? View.GONE : View.VISIBLE);
+            if (layoutDateRange != null) {
+                layoutDateRange.setVisibility(isAvailableChecked ? View.GONE : View.VISIBLE);
+            }
         };
         if (radioAvailable != null) radioAvailable.setOnClickListener(radioToggleListener);
         if (radioMaintenance != null) radioMaintenance.setOnClickListener(radioToggleListener);
@@ -747,7 +724,7 @@ public class AdminDashboardFragment extends Fragment {
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     String fac = facilities.get(position);
                     populateFacilityDialogState(fac, radioAvailable, radioMaintenance, radioCleaning, radioUnavailable,
-                            layoutDateRange, btnStartDate, btnEndDate, selectedStartDate, selectedEndDate);
+                            layoutDateRange, tvMaintStartDate, tvMaintEndDate, selectedStartDate, selectedEndDate);
                 }
 
                 @Override
@@ -757,7 +734,7 @@ public class AdminDashboardFragment extends Fragment {
 
         String facilityKey = defaultFacility != null ? defaultFacility : "Room 1";
         populateFacilityDialogState(facilityKey, radioAvailable, radioMaintenance, radioCleaning, radioUnavailable,
-                layoutDateRange, btnStartDate, btnEndDate, selectedStartDate, selectedEndDate);
+                layoutDateRange, tvMaintStartDate, tvMaintEndDate, selectedStartDate, selectedEndDate);
 
         new MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Manage Facility Availability")
@@ -790,9 +767,9 @@ public class AdminDashboardFragment extends Fragment {
             RadioButton radioMaintenance,
             RadioButton radioCleaning,
             RadioButton radioUnavailable,
-            LinearLayout layoutDateRange,
-            MaterialButton btnStartDate,
-            MaterialButton btnEndDate,
+            View layoutDateRange,
+            TextView tvMaintStartDate,
+            TextView tvMaintEndDate,
             String[] selectedStartDate,
             String[] selectedEndDate
     ) {
@@ -811,8 +788,8 @@ public class AdminDashboardFragment extends Fragment {
 
         selectedStartDate[0] = savedStart;
         selectedEndDate[0] = savedEnd;
-        btnStartDate.setText("From: " + savedStart);
-        btnEndDate.setText("To: " + savedEnd);
+        if (tvMaintStartDate != null) tvMaintStartDate.setText(savedStart);
+        if (tvMaintEndDate != null) tvMaintEndDate.setText(savedEnd);
 
         boolean bookedTodayByGuest = todayBookedFacilities.contains(facilityKey);
 
@@ -825,19 +802,19 @@ public class AdminDashboardFragment extends Fragment {
                 radioUnavailable.setText("Booked Today (Guest Reserved)");
             }
             if (radioAvailable != null) radioAvailable.setEnabled(false);
-            layoutDateRange.setVisibility(View.GONE);
+            if (layoutDateRange != null) layoutDateRange.setVisibility(View.GONE);
         } else if ("Maintenance".equalsIgnoreCase(savedStatus)) {
             if (radioMaintenance != null) radioMaintenance.setChecked(true);
-            layoutDateRange.setVisibility(View.VISIBLE);
+            if (layoutDateRange != null) layoutDateRange.setVisibility(View.VISIBLE);
         } else if ("Cleaning".equalsIgnoreCase(savedStatus)) {
             if (radioCleaning != null) radioCleaning.setChecked(true);
-            layoutDateRange.setVisibility(View.VISIBLE);
+            if (layoutDateRange != null) layoutDateRange.setVisibility(View.VISIBLE);
         } else if ("Unavailable".equalsIgnoreCase(savedStatus)) {
             if (radioUnavailable != null) radioUnavailable.setChecked(true);
-            layoutDateRange.setVisibility(View.VISIBLE);
+            if (layoutDateRange != null) layoutDateRange.setVisibility(View.VISIBLE);
         } else {
             if (radioAvailable != null) radioAvailable.setChecked(true);
-            layoutDateRange.setVisibility(View.GONE);
+            if (layoutDateRange != null) layoutDateRange.setVisibility(View.GONE);
         }
     }
 

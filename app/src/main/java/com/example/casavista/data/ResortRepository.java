@@ -256,6 +256,8 @@ public class ResortRepository {
                 obj.put("totalAmount", b.getTotalAmount());
                 obj.put("imagePath", b.getImagePath() != null ? b.getImagePath() : "");
                 obj.put("imageResId", b.getImageResId());
+                obj.put("createdAt", b.getCreatedAt() != null ? b.getCreatedAt() : "");
+                obj.put("holdExpiresAt", b.getHoldExpiresAt() != null ? b.getHoldExpiresAt() : "");
                 array.put(obj);
             }
             SharedPreferences prefs = context.getSharedPreferences(PREF_BOOKINGS, Context.MODE_PRIVATE);
@@ -300,6 +302,13 @@ public class ResortRepository {
                     booking.setCheckInDate(obj.optString("checkInDate", ""));
                     booking.setCheckOutDate(obj.optString("checkOutDate", ""));
                     booking.setTotalAmount(obj.optDouble("totalAmount", 0.0));
+                    booking.setCreatedAt(obj.optString("createdAt", ""));
+                    booking.setHoldExpiresAt(obj.optString("holdExpiresAt", ""));
+
+                    if (booking.isHoldExpired()) {
+                        booking.setStatus("Cancelled");
+                        booking.setDetail2("Hold expired (15-min window ended)");
+                    }
 
                     syncBookingCatalogImage(booking);
 
@@ -839,6 +848,16 @@ public class ResortRepository {
                 if (booking.getCheckOutDate() != null && !booking.getCheckOutDate().isEmpty()) {
                     existing.setCheckOutDate(booking.getCheckOutDate());
                 }
+                if (booking.getCreatedAt() != null && !booking.getCreatedAt().isEmpty()) {
+                    existing.setCreatedAt(booking.getCreatedAt());
+                }
+                if (booking.getHoldExpiresAt() != null && !booking.getHoldExpiresAt().isEmpty()) {
+                    existing.setHoldExpiresAt(booking.getHoldExpiresAt());
+                }
+                if (existing.isHoldExpired()) {
+                    existing.setStatus("Cancelled");
+                    existing.setDetail2("Hold expired (15-min window ended)");
+                }
                 syncBookingCatalogImage(existing);
                 if (context != null) {
                     saveBookings(context);
@@ -847,6 +866,10 @@ public class ResortRepository {
             }
         }
 
+        if (booking.isHoldExpired()) {
+            booking.setStatus("Cancelled");
+            booking.setDetail2("Hold expired (15-min window ended)");
+        }
         bookingsList.add(0, booking);
         if (context != null) {
             saveBookings(context);

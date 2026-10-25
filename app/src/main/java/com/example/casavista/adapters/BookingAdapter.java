@@ -53,6 +53,11 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
         holder.tvPrice.setText(booking.getPrice());
 
         String status = booking.getStatus() != null ? booking.getStatus() : "Pending";
+        if (booking.isHoldExpired()) {
+            status = "Cancelled";
+            booking.setStatus("Cancelled");
+            booking.setDetail2("Hold expired (15-min window ended)");
+        }
         holder.tvStatus.setText(status);
 
         if ("Pending".equalsIgnoreCase(status)) {
@@ -111,6 +116,20 @@ public class BookingAdapter extends RecyclerView.Adapter<BookingAdapter.BookingV
             holder.btnPayMaya.setOnClickListener(v -> {
                 int adapterPos = holder.getBindingAdapterPosition();
                 if (adapterPos != RecyclerView.NO_POSITION) {
+                    if (booking.isHoldExpired()) {
+                        booking.setStatus("Cancelled");
+                        booking.setDetail2("Reservation hold expired (15-min window ended)");
+                        ResortRepository.getInstance().saveBookings(v.getContext());
+                        notifyItemChanged(adapterPos);
+
+                        new com.google.android.material.dialog.MaterialAlertDialogBuilder(v.getContext())
+                                .setTitle("Reservation Hold Expired ⏱️")
+                                .setMessage("The 15-minute hold window for this reservation (" + booking.getBookingId() + ") has expired.\n\nThe reserved suite or court slot has been automatically released back to the resort inventory. Please create a new reservation.")
+                                .setPositiveButton("OK", null)
+                                .show();
+                        return;
+                    }
+
                     double amt = 400.0;
                     try {
                         String rawPrice = booking.getPrice() != null ? booking.getPrice().replaceAll("[^0-9.]", "") : "400";

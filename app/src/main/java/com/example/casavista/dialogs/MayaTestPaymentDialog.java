@@ -114,6 +114,34 @@ public class MayaTestPaymentDialog {
                         public void onError(String errorMessage) {
                             btnPaySuccess.setEnabled(true);
                             btnPaySuccess.setText("Simulate Successful Payment");
+
+                            if (errorMessage != null && (errorMessage.contains("expired") || errorMessage.contains("Cancelled") || errorMessage.contains("Hold window") || errorMessage.contains("400"))) {
+                                ResortRepository repo = ResortRepository.getInstance();
+                                for (Booking b : repo.getBookings()) {
+                                    if (bookingId.equalsIgnoreCase(b.getBookingId())) {
+                                        b.setStatus("Cancelled");
+                                        b.setDetail2("Reservation hold expired (15-min window ended)");
+                                        break;
+                                    }
+                                }
+                                repo.saveBookings(context);
+
+                                if (dialog != null && dialog.isShowing()) {
+                                    dialog.dismiss();
+                                }
+
+                                new MaterialAlertDialogBuilder(context)
+                                        .setTitle("Reservation Hold Expired ⏱️")
+                                        .setMessage("The 15-minute hold window for booking " + bookingId + " has ended. This reservation was automatically marked as Cancelled.\n\nPlease create a new reservation.")
+                                        .setPositiveButton("OK", (d, w) -> {
+                                            if (listener != null) {
+                                                listener.onPaymentCompleted(false, bookingId);
+                                            }
+                                        })
+                                        .show();
+                                return;
+                            }
+
                             Toast.makeText(context, "Payment failed: " + errorMessage, Toast.LENGTH_LONG).show();
                         }
                     });

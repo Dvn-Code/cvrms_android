@@ -140,4 +140,54 @@ public class Booking {
 
     public double getTotalAmount() { return totalAmount; }
     public void setTotalAmount(double totalAmount) { this.totalAmount = totalAmount; }
+
+    private String createdAt;
+    private String holdExpiresAt;
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getHoldExpiresAt() { return holdExpiresAt; }
+    public void setHoldExpiresAt(String holdExpiresAt) { this.holdExpiresAt = holdExpiresAt; }
+
+    public boolean isHoldExpired() {
+        if (!"Pending".equalsIgnoreCase(status)) return false;
+        try {
+            if (holdExpiresAt != null && !holdExpiresAt.trim().isEmpty() && !"null".equalsIgnoreCase(holdExpiresAt)) {
+                java.util.Date exp = parseIsoTimestamp(holdExpiresAt);
+                if (exp != null) {
+                    return System.currentTimeMillis() > exp.getTime();
+                }
+            }
+            if (createdAt != null && !createdAt.trim().isEmpty() && !"null".equalsIgnoreCase(createdAt)) {
+                java.util.Date created = parseIsoTimestamp(createdAt);
+                if (created != null) {
+                    return System.currentTimeMillis() > (created.getTime() + 15 * 60 * 1000);
+                }
+            }
+        } catch (Exception ignored) {}
+        return false;
+    }
+
+    private static java.util.Date parseIsoTimestamp(String iso) {
+        if (iso == null || iso.trim().isEmpty()) return null;
+        String clean = iso.trim();
+        String[] patterns = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX",
+                "yyyy-MM-dd'T'HH:mm:ssXXX",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd HH:mm:ssX",
+                "yyyy-MM-dd HH:mm:ss",
+                "yyyy-MM-dd"
+        };
+        for (String pattern : patterns) {
+            try {
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat(pattern, java.util.Locale.US);
+                sdf.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+                return sdf.parse(clean);
+            } catch (Exception ignored) {}
+        }
+        return null;
+    }
 }

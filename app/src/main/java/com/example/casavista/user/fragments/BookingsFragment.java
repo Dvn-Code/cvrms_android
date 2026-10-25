@@ -339,6 +339,9 @@ public class BookingsFragment extends Fragment {
                                         d1 = "DATE: " + bDate;
                                     }
 
+                                    String createdAt = obj.optString("created_at", "");
+                                    String holdExpiresAt = obj.optString("hold_expires_at", "");
+
                                     String d2 = "Pending".equalsIgnoreCase(bStatus)
                                             ? "Hold active (15-min window)"
                                             : "Status: " + bStatus;
@@ -356,6 +359,13 @@ public class BookingsFragment extends Fragment {
                                     b.setCheckOutDate(checkOutDate);
                                     b.setStatus(bStatus);
                                     b.setTotalAmount(totalAmt);
+                                    b.setCreatedAt(createdAt);
+                                    b.setHoldExpiresAt(holdExpiresAt);
+
+                                    if (b.isHoldExpired()) {
+                                        b.setStatus("Cancelled");
+                                        b.setDetail2("Reservation hold expired (15-min window ended)");
+                                    }
 
                                     // ResortRepository.addBooking handles deduplication & in-place updates
                                     repository.addBooking(requireContext(), b);
