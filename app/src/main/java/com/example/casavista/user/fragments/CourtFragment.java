@@ -9,7 +9,11 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -711,94 +715,136 @@ public class CourtFragment extends Fragment {
         final Context safeDialogContext = requireContext();
         final Context appContext = safeDialogContext.getApplicationContext();
 
-        android.widget.LinearLayout container = new android.widget.LinearLayout(safeDialogContext);
-        container.setOrientation(android.widget.LinearLayout.VERTICAL);
-        container.setPadding(40, 20, 40, 10);
+        View dialogView = LayoutInflater.from(safeDialogContext).inflate(R.layout.dialog_reserve_court, null);
 
-        android.widget.TextView tvPlanLabel = new android.widget.TextView(safeDialogContext);
-        tvPlanLabel.setText("SELECT PAYMENT PLAN");
-        tvPlanLabel.setTextColor(Color.parseColor("#4D391A"));
-        tvPlanLabel.setTextSize(11);
-        tvPlanLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        container.addView(tvPlanLabel);
-
-        List<String> planOptions = new ArrayList<>();
-        planOptions.add("Pay in Full (100%): ₱" + calculatedTotalPrice);
-        planOptions.add("50% Downpayment: ₱" + (calculatedTotalPrice * 0.5));
-
-        final android.widget.Spinner spinnerPlan = new android.widget.Spinner(safeDialogContext);
-        android.widget.ArrayAdapter<String> planAdapter = new android.widget.ArrayAdapter<>(safeDialogContext, R.layout.item_payment_spinner_selected, planOptions);
-        planAdapter.setDropDownViewResource(R.layout.item_payment_spinner_dropdown);
-        spinnerPlan.setAdapter(planAdapter);
-        container.addView(spinnerPlan);
-
-        android.widget.TextView tvMethodLabel = new android.widget.TextView(safeDialogContext);
-        tvMethodLabel.setText("\nSELECT CASHLESS METHOD");
-        tvMethodLabel.setTextColor(Color.parseColor("#4D391A"));
-        tvMethodLabel.setTextSize(11);
-        tvMethodLabel.setTypeface(null, android.graphics.Typeface.BOLD);
-        container.addView(tvMethodLabel);
-
-        List<String> paymentMethods = new ArrayList<>();
-        paymentMethods.add("GCash (Cashless E-Wallet)");
-        paymentMethods.add("Pay via Maya (Cashless Gateway)");
-        paymentMethods.add("Credit / Debit Card");
-        paymentMethods.add("Bank Transfer (Online)");
-
-        final android.widget.Spinner spinner = new android.widget.Spinner(safeDialogContext);
-        android.widget.ArrayAdapter<String> adapter = new android.widget.ArrayAdapter<>(safeDialogContext, R.layout.item_payment_spinner_selected, paymentMethods);
-        adapter.setDropDownViewResource(R.layout.item_payment_spinner_dropdown);
-        spinner.setAdapter(adapter);
-
-        final com.google.android.material.textfield.TextInputLayout layoutMobile = new com.google.android.material.textfield.TextInputLayout(safeDialogContext);
-        layoutMobile.setHint("Mobile / Account Number");
-        android.widget.LinearLayout.LayoutParams params = new android.widget.LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.setMargins(0, 20, 0, 0);
-        layoutMobile.setLayoutParams(params);
-
-        final com.google.android.material.textfield.TextInputEditText etMobile = new com.google.android.material.textfield.TextInputEditText(safeDialogContext);
-        etMobile.setInputType(android.text.InputType.TYPE_CLASS_PHONE);
-        layoutMobile.addView(etMobile);
-
-        container.addView(spinner);
-        container.addView(layoutMobile);
-
-        spinner.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                String selected = adapter.getItem(position);
-                if (selected != null && (selected.contains("GCash") || selected.contains("Maya") || selected.contains("Card") || selected.contains("Bank"))) {
-                    layoutMobile.setVisibility(View.VISIBLE);
-                } else {
-                    layoutMobile.setVisibility(View.GONE);
-                }
-            }
-
-            @Override
-            public void onNothingSelected(android.widget.AdapterView<?> parent) {}
-        });
+        ImageView imgPreview = dialogView.findViewById(R.id.dialogCourtImg);
+        TextView tvTitle = dialogView.findViewById(R.id.dialogCourtTitle);
+        TextView tvBadge = dialogView.findViewById(R.id.dialogCourtBadge);
+        TextView tvSubtitle = dialogView.findViewById(R.id.dialogCourtSubtitle);
+        TextView tvDetails = dialogView.findViewById(R.id.dialogCourtDetails);
+        TextView tvRate = dialogView.findViewById(R.id.dialogCourtRate);
+        TextView tvPriceBreakdownText = dialogView.findViewById(R.id.tvCourtPriceBreakdownText);
+        TextView tvCalculatedTotalAmount = dialogView.findViewById(R.id.tvCourtCalculatedTotalAmount);
+        RadioGroup rgPaymentPlan = dialogView.findViewById(R.id.rgCourtPaymentPlan);
+        RadioButton rbPayFull = dialogView.findViewById(R.id.rbCourtPayFull);
+        RadioButton rbPayHalf = dialogView.findViewById(R.id.rbCourtPayHalf);
+        Spinner spinnerPayment = dialogView.findViewById(R.id.spinnerCourtPaymentMethod);
+        com.google.android.material.textfield.TextInputLayout layoutMobile = dialogView.findViewById(R.id.layoutCourtAccountMobile);
+        com.google.android.material.textfield.TextInputEditText etMobile = dialogView.findViewById(R.id.etCourtAccountMobileNumber);
 
         String isNightText = selectedHourStart >= 18 ? "Night Rate" : "Day Rate";
+        int sportImageRes = "Basketball".equalsIgnoreCase(selectedSport) ? R.drawable.basketball_icon_img : R.drawable.pickleball_icon_img;
+        if (imgPreview != null) imgPreview.setImageResource(sportImageRes);
+        if (tvTitle != null) tvTitle.setText(selectedCourt + " (" + selectedSport + ")");
+        if (tvBadge != null) tvBadge.setText(isNightText);
+        if (tvSubtitle != null) tvSubtitle.setText(formattedCourtDate + " • Slot: " + selectedTimeSlot);
         String paddleDetail = ("Pickleball".equalsIgnoreCase(selectedSport) && paddleCount > 0)
-                ? "\nPaddles: " + paddleCount + " (₱" + (paddleCount * 100) + ")"
-                : "";
+                ? paddleCount + " Paddles (₱" + (paddleCount * 100) + ")"
+                : "Equipment: Standard";
+        if (tvDetails != null) tvDetails.setText(selectedSport + " • " + paddleDetail);
+        if (tvRate != null) tvRate.setText(String.format(Locale.US, "₱%,.2f Total", calculatedTotalPrice));
+
+        Runnable updatePlanAmount = () -> {
+            boolean is50 = rbPayHalf != null && rbPayHalf.isChecked();
+            double due = is50 ? (calculatedTotalPrice * 0.5) : calculatedTotalPrice;
+            if (tvPriceBreakdownText != null) {
+                tvPriceBreakdownText.setText(is50 ? "50% Downpayment Due Now:" : "Total Amount Due Now (100%):");
+            }
+            if (tvCalculatedTotalAmount != null) {
+                tvCalculatedTotalAmount.setText(String.format(Locale.US, "₱%,.2f", due));
+            }
+        };
+
+        if (rgPaymentPlan != null) {
+            rgPaymentPlan.setOnCheckedChangeListener((group, checkedId) -> {
+                if (checkedId == R.id.rbCourtPayHalf && rbPayHalf != null && rbPayFull != null) {
+                    rbPayHalf.setTextColor(Color.parseColor("#FFD700"));
+                    rbPayHalf.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#20FFD700")));
+                    rbPayFull.setTextColor(Color.parseColor("#A0A0A0"));
+                    rbPayFull.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#15FFFFFF")));
+                } else if (rbPayFull != null && rbPayHalf != null) {
+                    rbPayFull.setTextColor(Color.parseColor("#FFD700"));
+                    rbPayFull.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#20FFD700")));
+                    rbPayHalf.setTextColor(Color.parseColor("#A0A0A0"));
+                    rbPayHalf.setBackgroundTintList(android.content.res.ColorStateList.valueOf(Color.parseColor("#15FFFFFF")));
+                }
+                updatePlanAmount.run();
+            });
+        }
+        updatePlanAmount.run();
+
+        List<String> paymentMethods = new ArrayList<>();
+        paymentMethods.add("Pay via Maya (Active Gateway)");
+        paymentMethods.add("GCash (Unavailable - Maintenance)");
+        paymentMethods.add("Credit / Debit Card (Temporarily Offline)");
+        paymentMethods.add("Bank Transfer (Temporarily Offline)");
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(safeDialogContext, R.layout.item_payment_spinner_selected, paymentMethods) {
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View v = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) v.findViewById(android.R.id.text1);
+                if (tv != null) {
+                    if (position == 0) {
+                        tv.setTextColor(Color.parseColor("#4D391A"));
+                        tv.setTypeface(null, android.graphics.Typeface.BOLD);
+                    } else {
+                        tv.setTextColor(Color.parseColor("#8E8E93"));
+                        tv.setTypeface(null, android.graphics.Typeface.NORMAL);
+                    }
+                }
+                return v;
+            }
+        };
+        adapter.setDropDownViewResource(R.layout.item_payment_spinner_dropdown);
+        if (spinnerPayment != null) {
+            spinnerPayment.setAdapter(adapter);
+            spinnerPayment.setSelection(0);
+
+            spinnerPayment.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                private boolean initialLoad = true;
+
+                @Override
+                public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                    if (initialLoad) {
+                        initialLoad = false;
+                        return;
+                    }
+                    if (position != 0) {
+                        new com.google.android.material.dialog.MaterialAlertDialogBuilder(safeDialogContext)
+                                .setTitle("Payment Gateway Notice")
+                                .setMessage("Only Pay via Maya is currently active for instant cashless settlements. GCash, Credit/Debit cards, and Bank Transfers are temporarily offline for scheduled gateway maintenance.\n\nPlease proceed using Pay via Maya.")
+                                .setPositiveButton("Use Pay via Maya", (d, w) -> {
+                                    spinnerPayment.setSelection(0);
+                                })
+                                .setCancelable(false)
+                                .show();
+                    }
+                    if (layoutMobile != null) {
+                        layoutMobile.setVisibility(View.VISIBLE);
+                        layoutMobile.setHint("Maya Mobile Account Number");
+                    }
+                }
+
+                @Override
+                public void onNothingSelected(android.widget.AdapterView<?> parent) {}
+            });
+        }
 
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(safeDialogContext)
-                .setTitle("Court Reservation Checkout")
-                .setMessage("Reserving " + selectedCourt + " (" + selectedSport + ") for " + formattedCourtDate + "\nSlot: " + selectedTimeSlot + " (" + isNightText + ")" + paddleDetail + "\nTotal Rate: ₱" + calculatedTotalPrice)
-                .setView(container)
+                .setTitle("Reserve Court")
+                .setView(dialogView)
                 .setCancelable(false)
                 .setPositiveButton("Confirm & Pay", (dialog, which) -> {
-                    String chosenPayment = spinner.getSelectedItem() != null ? spinner.getSelectedItem().toString() : "GCash (Cashless E-Wallet)";
-                    String mobileNum = etMobile.getText() != null ? etMobile.getText().toString().trim() : "";
+                    String chosenPayment = spinnerPayment != null ? spinnerPayment.getSelectedItem().toString() : "Pay via Maya (Active Gateway)";
+                    String mobileNum = etMobile != null && etMobile.getText() != null ? etMobile.getText().toString().trim() : "";
 
-                    if (layoutMobile.getVisibility() == View.VISIBLE && mobileNum.isEmpty()) {
-                        Toast.makeText(appContext, "Please enter your account / mobile number for cashless payment.", Toast.LENGTH_LONG).show();
+                    if (layoutMobile != null && layoutMobile.getVisibility() == View.VISIBLE && mobileNum.isEmpty()) {
+                        Toast.makeText(appContext, "Please enter your Maya account / mobile number.", Toast.LENGTH_LONG).show();
                         return;
                     }
 
-                    boolean is50Percent = spinnerPlan.getSelectedItemPosition() == 1;
+                    boolean is50Percent = rbPayHalf != null && rbPayHalf.isChecked();
                     double amountDueNow = is50Percent ? (calculatedTotalPrice * 0.5) : calculatedTotalPrice;
 
                     if (!mobileNum.isEmpty()) {
@@ -853,7 +899,7 @@ public class CourtFragment extends Fragment {
                         String finalCustomerId = customerId;
                         double finalAmountDueNow = amountDueNow;
                         String finalMobileNum = mobileNum;
-                        int sportImageRes = "Basketball".equalsIgnoreCase(selectedSport) ? R.drawable.basketball_icon_img : R.drawable.pickleball_icon_img;
+                        int finalSportImageRes = sportImageRes;
                         String equipText = ("Pickleball".equalsIgnoreCase(selectedSport) && paddleCount > 0)
                                 ? paddleCount + " Paddles Rental Included"
                                 : "Standard Equipment Included";
@@ -891,7 +937,7 @@ public class CourtFragment extends Fragment {
                                                 equipText + " • Hold active (15-min window)",
                                                 "₱" + calculatedTotalPrice,
                                                 null,
-                                                sportImageRes
+                                                finalSportImageRes
                                         );
                                         courtBooking.setBookingId(finalBookingId);
                                         courtBooking.setCustomerId(resolvedCustId);

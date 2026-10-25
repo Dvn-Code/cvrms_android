@@ -7,16 +7,16 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class BookingIdGenerator {
 
-    private static final AtomicInteger counter = new AtomicInteger(101);
+    private static final AtomicInteger counter = new AtomicInteger(1);
 
     public static String generateBookingId() {
         SimpleDateFormat sdf = new SimpleDateFormat("yyMMdd", Locale.US);
         String dateStr = sdf.format(new Date());
         int seq = counter.getAndIncrement();
-        if (seq > 999) {
-            counter.set(101);
-            seq = 101;
+        if (seq > 99) {
+            counter.set(1);
+            seq = 1;
         }
-        return "BK-" + dateStr + "-" + seq; // e.g., BK-261013-101 (13 chars <= 15)
+        return String.format(Locale.US, "BK-%s-%02d", dateStr, seq); // e.g., BK-261025-01
     }
 }

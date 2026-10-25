@@ -278,21 +278,26 @@
             </com.google.android.material.card.MaterialCardView>
 
             <!-- TOTAL PRICE CALCULATION DISPLAY -->
-            <RelativeLayout
+            <!-- TOTAL PRICE CALCULATION DISPLAY -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_pill_gold"
                 android:backgroundTint="#15FFD700"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
                 android:paddingHorizontal="14dp"
-                android:paddingVertical="8dp">
+                android:paddingVertical="10dp">
 
                 <TextView
                     android:id="@+id/tvPriceBreakdownText"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentStart="true"
-                    android:layout_centerVertical="true"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:ellipsize="end"
+                    android:maxLines="2"
                     android:text="Total Amount (1 Night):"
                     android:textColor="@color/text_secondary"
                     android:textSize="12sp"
@@ -302,13 +307,11 @@
                     android:id="@+id/tvCalculatedTotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_alignParentEnd="true"
-                    android:layout_centerVertical="true"
                     android:text="₱2,500.00"
                     android:textColor="@color/accent_gold"
                     android:textSize="15sp"
                     android:textStyle="bold" />
-            </RelativeLayout>
+            </LinearLayout>
 
             <!-- PAYMENT PLAN (FULL VS 50% DOWNPAYMENT) -->
             <TextView

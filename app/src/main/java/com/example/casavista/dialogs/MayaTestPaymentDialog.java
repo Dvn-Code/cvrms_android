@@ -82,7 +82,7 @@ public class MayaTestPaymentDialog {
                 Toast.makeText(context, "Authorizing Maya Sandbox transaction...", Toast.LENGTH_SHORT).show();
 
                 try {
-                    String paymentId = "PAY-" + (System.currentTimeMillis() % 10000000);
+                    String paymentId = com.example.casavista.helpers.PaymentIdGenerator.generatePaymentId();
                     JSONObject payload = new JSONObject();
                     payload.put("payment_id", paymentId);
                     payload.put("booking_id", bookingId);

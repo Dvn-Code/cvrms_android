@@ -461,38 +461,58 @@ public class CatalogFragment extends Fragment {
         if (cardStayOutDate != null) cardStayOutDate.setOnClickListener(openRangePicker);
 
         List<String> paymentMethods = new ArrayList<>();
-        paymentMethods.add("GCash (Cashless E-Wallet)");
-        paymentMethods.add("Pay via Maya (Cashless Gateway)");
-        paymentMethods.add("Credit / Debit Card");
-        paymentMethods.add("Bank Transfer (Online)");
+        paymentMethods.add("Pay via Maya (Active Gateway)");
+        paymentMethods.add("GCash (Unavailable - Maintenance)");
+        paymentMethods.add("Credit / Debit Card (Temporarily Offline)");
+        paymentMethods.add("Bank Transfer (Temporarily Offline)");
 
         com.google.android.material.textfield.TextInputLayout layoutAccountMobile = dialogView.findViewById(R.id.layoutAccountMobile);
         com.google.android.material.textfield.TextInputEditText etAccountMobileNumber = dialogView.findViewById(R.id.etAccountMobileNumber);
 
-        ArrayAdapter<String> paymentAdapter = new ArrayAdapter<>(safeDialogContext, R.layout.item_payment_spinner_selected, paymentMethods);
+        ArrayAdapter<String> paymentAdapter = new ArrayAdapter<String>(safeDialogContext, R.layout.item_payment_spinner_selected, paymentMethods) {
+            @Override
+            public View getDropDownView(int position, View convertView, ViewGroup parent) {
+                View v = super.getDropDownView(position, convertView, parent);
+                TextView tv = (TextView) v.findViewById(android.R.id.text1);
+                if (tv != null) {
+                    if (position == 0) {
+                        tv.setTextColor(Color.parseColor("#4D391A"));
+                        tv.setTypeface(null, android.graphics.Typeface.BOLD);
+                    } else {
+                        tv.setTextColor(Color.parseColor("#8E8E93"));
+                        tv.setTypeface(null, android.graphics.Typeface.NORMAL);
+                    }
+                }
+                return v;
+            }
+        };
         paymentAdapter.setDropDownViewResource(R.layout.item_payment_spinner_dropdown);
         if (spinnerPayment != null) {
             spinnerPayment.setAdapter(paymentAdapter);
+            spinnerPayment.setSelection(0);
 
             spinnerPayment.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+                private boolean initialLoad = true;
+
                 @Override
                 public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
-                    String selected = paymentAdapter.getItem(position);
-                    if (selected != null && (selected.contains("GCash") || selected.contains("Maya") || selected.contains("Card") || selected.contains("Bank"))) {
-                        if (layoutAccountMobile != null) {
-                            layoutAccountMobile.setVisibility(View.VISIBLE);
-                            if (selected.contains("GCash") || selected.contains("Maya")) {
-                                layoutAccountMobile.setHint("Mobile Account Number");
-                            } else if (selected.contains("Card")) {
-                                layoutAccountMobile.setHint("Cardholder Mobile Number");
-                            } else {
-                                layoutAccountMobile.setHint("Bank Account / Ref Mobile Number");
-                            }
-                        }
-                    } else {
-                        if (layoutAccountMobile != null) {
-                            layoutAccountMobile.setVisibility(View.GONE);
-                        }
+                    if (initialLoad) {
+                        initialLoad = false;
+                        return;
+                    }
+                    if (position != 0) {
+                        new MaterialAlertDialogBuilder(safeDialogContext)
+                                .setTitle("Payment Gateway Notice")
+                                .setMessage("Only Pay via Maya is currently active for instant cashless settlements. GCash, Credit/Debit cards, and Bank Transfers are temporarily offline for scheduled gateway maintenance.\n\nPlease proceed using Pay via Maya.")
+                                .setPositiveButton("Use Pay via Maya", (d, w) -> {
+                                    spinnerPayment.setSelection(0);
+                                })
+                                .setCancelable(false)
+                                .show();
+                    }
+                    if (layoutAccountMobile != null) {
+                        layoutAccountMobile.setVisibility(View.VISIBLE);
+                        layoutAccountMobile.setHint("Maya Mobile Account Number");
                     }
                 }
 
@@ -506,7 +526,7 @@ public class CatalogFragment extends Fragment {
                 .setView(dialogView)
                 .setCancelable(false)
                 .setPositiveButton("Confirm Reservation", (dialog, which) -> {
-                    String chosenPayment = spinnerPayment != null ? spinnerPayment.getSelectedItem().toString() : "GCash (Cashless E-Wallet)";
+                    String chosenPayment = spinnerPayment != null ? spinnerPayment.getSelectedItem().toString() : "Pay via Maya (Active Gateway)";
                     String mobileNum = etAccountMobileNumber != null ? etAccountMobileNumber.getText().toString().trim() : "";
 
                     if (layoutAccountMobile != null && layoutAccountMobile.getVisibility() == View.VISIBLE && mobileNum.isEmpty()) {
