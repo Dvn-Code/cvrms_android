@@ -60,7 +60,10 @@ public class CatalogAdapter extends RecyclerView.Adapter<CatalogAdapter.ViewHold
             String imageUrl = item.getImageUrl();
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 try {
-                    if (imageUrl.startsWith("content://")) {
+                    android.graphics.Bitmap b64 = com.example.casavista.helpers.ImageBase64Helper.decodeBase64ToBitmap(imageUrl);
+                    if (b64 != null) {
+                        holder.imgCatalog.setImageBitmap(b64);
+                    } else if (imageUrl.startsWith("content://")) {
                         holder.imgCatalog.setImageURI(Uri.parse(imageUrl));
                     } else {
                         File imgFile = new File(imageUrl);

@@ -1167,9 +1167,9 @@ public class SuperAdminDashboardFragment extends Fragment {
                     if (!title.isEmpty() && !content.isEmpty()) {
                         String currentDate = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(new Date());
 
-                        String localImagePath = null;
+                        String imageBase64 = null;
                         if (selectedImageUri != null) {
-                            localImagePath = saveImageToInternalStorage(selectedImageUri, "announcement_");
+                            imageBase64 = com.example.casavista.helpers.ImageBase64Helper.encodeImageToBase64(requireContext(), selectedImageUri);
                         }
 
                         AdminAnnouncementHelper.addAnnouncement(
@@ -1177,11 +1177,11 @@ public class SuperAdminDashboardFragment extends Fragment {
                                 title,
                                 content,
                                 currentDate,
-                                localImagePath,
+                                imageBase64 != null ? imageBase64 : "",
                                 "Super Admin"
                         );
 
-                        Toast.makeText(getContext(), "Announcement published successfully!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(getContext(), "Announcement published and synced to all devices!", Toast.LENGTH_LONG).show();
                     } else {
                         Toast.makeText(getContext(), "Please fill in post title and content", Toast.LENGTH_SHORT).show();
                     }
@@ -1228,13 +1228,32 @@ public class SuperAdminDashboardFragment extends Fragment {
                         CatalogItem targetItem = catalogItems.get(selectedIndex);
 
                         if (selectedRoomImageUri != null) {
-                            String savedPath = saveImageToInternalStorage(selectedRoomImageUri, "catalog_room_");
-                            if (savedPath != null) {
-                                targetItem.setImageUrl(savedPath);
+                            String base64 = com.example.casavista.helpers.ImageBase64Helper.encodeImageToBase64(requireContext(), selectedRoomImageUri);
+                            if (base64 != null) {
+                                targetItem.setImageUrl(base64);
                                 ResortRepository.getInstance().updateCatalogItem(requireContext(), targetItem);
+                                com.example.casavista.network.SupabaseClient.getInstance().uploadMedia(
+                                        targetItem.getTitle(),
+                                        "facility",
+                                        base64,
+                                        "image/jpeg",
+                                        new com.example.casavista.network.SupabaseClient.DataCallback() {
+                                            @Override
+                                            public void onSuccess(String result) {
+                                                if (getContext() != null) {
+                                                    Toast.makeText(getContext(), "Cloud photo synced for " + targetItem.getTitle(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+
+                                            @Override
+                                            public void onError(String error) {
+                                                // Retained locally
+                                            }
+                                        }
+                                );
                                 Toast.makeText(getContext(), "Updated photo for " + targetItem.getTitle(), Toast.LENGTH_LONG).show();
                             } else {
-                                Toast.makeText(getContext(), "Failed to save photo.", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getContext(), "Failed to process photo.", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             Toast.makeText(getContext(), "Please select a new photo to save", Toast.LENGTH_SHORT).show();

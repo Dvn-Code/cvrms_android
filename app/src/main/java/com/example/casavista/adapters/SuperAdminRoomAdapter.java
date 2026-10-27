@@ -146,16 +146,22 @@ public class SuperAdminRoomAdapter extends RecyclerView.Adapter<SuperAdminRoomAd
 
             if (imageUrl != null && !imageUrl.trim().isEmpty()) {
                 try {
-                    File imgFile = new File(imageUrl);
-                    if (imgFile.exists()) {
-                        android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                        if (bitmap != null) {
-                            holder.imgThumb.setImageBitmap(bitmap);
+                    android.graphics.Bitmap b64 = com.example.casavista.helpers.ImageBase64Helper.decodeBase64ToBitmap(imageUrl);
+                    if (b64 != null) {
+                        holder.imgThumb.setImageBitmap(b64);
+                        loaded = true;
+                    } else {
+                        File imgFile = new File(imageUrl);
+                        if (imgFile.exists()) {
+                            android.graphics.Bitmap bitmap = android.graphics.BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                            if (bitmap != null) {
+                                holder.imgThumb.setImageBitmap(bitmap);
+                                loaded = true;
+                            }
+                        } else if (imageUrl.startsWith("content://")) {
+                            holder.imgThumb.setImageURI(Uri.parse(imageUrl));
                             loaded = true;
                         }
-                    } else if (imageUrl.startsWith("content://")) {
-                        holder.imgThumb.setImageURI(Uri.parse(imageUrl));
-                        loaded = true;
                     }
                 } catch (Exception ignored) {}
             }

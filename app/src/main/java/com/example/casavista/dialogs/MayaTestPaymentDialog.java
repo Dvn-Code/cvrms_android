@@ -182,15 +182,36 @@ public class MayaTestPaymentDialog {
         }
         repo.saveBookings(context);
 
-        new MaterialAlertDialogBuilder(context)
-                .setTitle("Payment Verified! 🎉")
-                .setMessage("Your Maya payment (₱" + String.format(Locale.US, "%.2f", amount) + ") was captured successfully.\nBooking " + bookingId + " status updated to Confirmed in Supabase.")
-                .setCancelable(false)
-                .setPositiveButton("OK", (d, w) -> {
-                    if (listener != null) {
-                        listener.onPaymentCompleted(true, bookingId);
-                    }
-                })
-                .show();
+        View successView = LayoutInflater.from(context).inflate(R.layout.dialog_payment_verified, null);
+        Dialog successDialog = new Dialog(context);
+        successDialog.setContentView(successView);
+        if (successDialog.getWindow() != null) {
+            successDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+            successDialog.getWindow().setLayout(
+                    (int) (context.getResources().getDisplayMetrics().widthPixels * 0.92),
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+            );
+        }
+        successDialog.setCancelable(false);
+
+        TextView tvAmount = successView.findViewById(R.id.tvVerifiedAmount);
+        TextView tvBookingRef = successView.findViewById(R.id.tvVerifiedBookingRef);
+        TextView tvTxnRef = successView.findViewById(R.id.tvVerifiedTxnRef);
+        MaterialButton btnDone = successView.findViewById(R.id.btnVerifiedDone);
+
+        if (tvAmount != null) tvAmount.setText(String.format(Locale.US, "₱%.2f", amount));
+        if (tvBookingRef != null) tvBookingRef.setText(bookingId);
+        if (tvTxnRef != null) tvTxnRef.setText(mockRefText);
+
+        if (btnDone != null) {
+            btnDone.setOnClickListener(v -> {
+                successDialog.dismiss();
+                if (listener != null) {
+                    listener.onPaymentCompleted(true, bookingId);
+                }
+            });
+        }
+
+        successDialog.show();
     }
 }

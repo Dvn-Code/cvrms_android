@@ -1032,4 +1032,232 @@ public class SupabaseClient {
             }
         }).start();
     }
+
+    public void uploadMedia(String entityId, String entityType, String imageBase64, String mimeType, DataCallback callback) {
+        uploadMedia(entityId, entityType, imageBase64, callback);
+    }
+
+    public void uploadMedia(String entityId, String entityType, String imageBase64, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/media";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json; utf-8");
+                applyStaffHeaders(conn);
+                conn.setDoOutput(true);
+
+                JSONObject payload = new JSONObject();
+                payload.put("entity_id", entityId);
+                payload.put("entity_type", entityType);
+                payload.put("image_base64", imageBase64);
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(response.toString());
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + response);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void fetchMedia(String entityId, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/media/" + URLEncoder.encode(entityId, "UTF-8");
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(response.toString());
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + response);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void fetchAllMedia(DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/media";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(response.toString());
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + response);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void createAnnouncement(String title, String content, String imageBase64, String authorName, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/announcements";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("POST");
+                conn.setRequestProperty("Content-Type", "application/json; utf-8");
+                applyStaffHeaders(conn);
+                conn.setDoOutput(true);
+
+                JSONObject payload = new JSONObject();
+                payload.put("title", title);
+                payload.put("content", content);
+                if (imageBase64 != null && !imageBase64.isEmpty()) {
+                    payload.put("image_base64", imageBase64);
+                }
+                payload.put("author_name", authorName != null ? authorName : "Super Admin");
+
+                try (OutputStream os = conn.getOutputStream()) {
+                    byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
+                    os.write(input, 0, input.length);
+                }
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(response.toString());
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + response);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void fetchAnnouncements(DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/announcements";
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                BufferedReader br = new BufferedReader(new InputStreamReader(
+                        code >= 200 && code < 300 ? conn.getInputStream() : conn.getErrorStream(), StandardCharsets.UTF_8
+                ));
+                StringBuilder response = new StringBuilder();
+                String line;
+                while ((line = br.readLine()) != null) response.append(line.trim());
+
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess(response.toString());
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code + ": " + response);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    public void deleteAnnouncement(String announcementId, DataCallback callback) {
+        new Thread(() -> {
+            try {
+                String endpoint = SupabaseConfig.FASTAPI_BACKEND_URL + "/announcements/" + URLEncoder.encode(announcementId, "UTF-8");
+                URL url = new URL(endpoint);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("DELETE");
+                applyStaffHeaders(conn);
+
+                int code = conn.getResponseCode();
+                if (code >= 200 && code < 300) {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onSuccess("Announcement deleted");
+                    });
+                } else {
+                    mainHandler.post(() -> {
+                        if (callback != null) callback.onError("HTTP " + code);
+                    });
+                }
+            } catch (Exception e) {
+                mainHandler.post(() -> {
+                    if (callback != null) callback.onError("Network error: " + e.getMessage());
+                });
+            }
+        }).start();
+    }
 }

@@ -350,6 +350,22 @@ public class HomeFragment extends Fragment {
                 // Dots update automatically
             }).attach();
         }
+
+        // Fetch cloud announcements from Supabase and refresh if updated
+        AdminAnnouncementHelper.syncWithCloud(requireContext(), () -> {
+            if (isAdded() && getActivity() != null) {
+                getActivity().runOnUiThread(() -> {
+                    if (getContext() == null || viewPagerAnnouncements == null) return;
+                    List<Announcement> updated = AdminAnnouncementHelper.getAnnouncements(requireContext());
+                    if (!updated.isEmpty()) {
+                        viewPagerAnnouncements.setVisibility(View.VISIBLE);
+                        tabLayoutIndicator.setVisibility(View.VISIBLE);
+                        AnnouncementAdapter adapter = new AnnouncementAdapter(updated);
+                        viewPagerAnnouncements.setAdapter(adapter);
+                    }
+                });
+            }
+        });
     }
 
     private void syncUserProfileHeader() {

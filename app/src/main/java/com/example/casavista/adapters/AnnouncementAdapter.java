@@ -84,14 +84,24 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
             boolean loaded = false;
 
+            // Try Base64 decoding from Supabase cloud
+            Bitmap b64Bitmap = com.example.casavista.helpers.ImageBase64Helper.decodeBase64ToBitmap(item.getImagePath());
+            if (b64Bitmap != null) {
+                holder.imgAnnouncement.setImageBitmap(b64Bitmap);
+                holder.imgAnnouncement.setVisibility(View.VISIBLE);
+                loaded = true;
+            }
+
             // Try decoding as local file
-            File imgFile = new File(item.getImagePath());
-            if (imgFile.exists()) {
-                Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                if (bitmap != null) {
-                    holder.imgAnnouncement.setImageBitmap(bitmap);
-                    holder.imgAnnouncement.setVisibility(View.VISIBLE);
-                    loaded = true;
+            if (!loaded) {
+                File imgFile = new File(item.getImagePath());
+                if (imgFile.exists()) {
+                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                    if (bitmap != null) {
+                        holder.imgAnnouncement.setImageBitmap(bitmap);
+                        holder.imgAnnouncement.setVisibility(View.VISIBLE);
+                        loaded = true;
+                    }
                 }
             }
 
@@ -154,13 +164,24 @@ public class AnnouncementAdapter extends RecyclerView.Adapter<AnnouncementAdapte
         if (imgDialog != null) {
             if (item.getImagePath() != null && !item.getImagePath().isEmpty()) {
                 boolean loaded = false;
-                File imgFile = new File(item.getImagePath());
-                if (imgFile.exists()) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                    if (bitmap != null) {
-                        imgDialog.setImageBitmap(bitmap);
-                        imgDialog.setVisibility(View.VISIBLE);
-                        loaded = true;
+
+                // Try Base64 decoding
+                Bitmap b64Bitmap = com.example.casavista.helpers.ImageBase64Helper.decodeBase64ToBitmap(item.getImagePath());
+                if (b64Bitmap != null) {
+                    imgDialog.setImageBitmap(b64Bitmap);
+                    imgDialog.setVisibility(View.VISIBLE);
+                    loaded = true;
+                }
+
+                if (!loaded) {
+                    File imgFile = new File(item.getImagePath());
+                    if (imgFile.exists()) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+                        if (bitmap != null) {
+                            imgDialog.setImageBitmap(bitmap);
+                            imgDialog.setVisibility(View.VISIBLE);
+                            loaded = true;
+                        }
                     }
                 }
 

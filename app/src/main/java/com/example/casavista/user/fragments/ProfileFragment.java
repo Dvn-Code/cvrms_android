@@ -26,6 +26,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.casavista.auth.LoginActivity;
+import com.example.casavista.helpers.AvatarHelper;
 import com.example.casavista.R;
 import com.google.android.material.datepicker.CalendarConstraints;
 import com.google.android.material.datepicker.DateValidatorPointBackward;
@@ -68,8 +69,10 @@ public class ProfileFragment extends Fragment {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
-                    if (uri != null) {
-                        saveImageToInternalStorage(uri);
+                    if (uri != null && getContext() != null) {
+                        SharedPreferences prefs = requireContext().getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+                        String email = prefs.getString(KEY_USER_EMAIL, "guest@casavista.com");
+                        AvatarHelper.saveProfileImage(requireContext(), email, uri, () -> displayProfileImage());
                         displayProfileImage();
                     }
                 }

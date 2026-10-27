@@ -144,6 +144,52 @@ public class ResortRepository {
                 }
             }
         }
+        syncFacilityImagesWithCloud(context, null);
+    }
+
+    public void syncFacilityImagesWithCloud(Context context, Runnable onComplete) {
+        if (context == null) return;
+        com.example.casavista.network.SupabaseClient.getInstance().fetchAllMedia(new com.example.casavista.network.SupabaseClient.DataCallback() {
+            @Override
+            public void onSuccess(String jsonResult) {
+                try {
+                    JSONArray arr = new JSONArray(jsonResult);
+                    SharedPreferences prefs = context.getSharedPreferences(PREF_CATALOG, Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    boolean changed = false;
+                    for (int i = 0; i < arr.length(); i++) {
+                        JSONObject obj = arr.getJSONObject(i);
+                        String entityType = obj.optString("entity_type", "");
+                        if ("facility".equalsIgnoreCase(entityType) || "room".equalsIgnoreCase(entityType) || "court".equalsIgnoreCase(entityType)) {
+                            String entityId = obj.optString("entity_id", "");
+                            String base64Data = obj.optString("base64_data", "");
+                            if (!entityId.isEmpty() && !base64Data.isEmpty()) {
+                                editor.putString(entityId, base64Data);
+                                for (CatalogItem ci : catalogItems) {
+                                    if (entityId.equalsIgnoreCase(ci.getTitle())) {
+                                        ci.setImageUrl(base64Data);
+                                        changed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    editor.apply();
+                    if (changed) {
+                        saveCatalogToPrefs(context);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                if (onComplete != null) onComplete.run();
+            }
+
+            @Override
+            public void onError(String error) {
+                if (onComplete != null) onComplete.run();
+            }
+        });
     }
 
     public void updateCatalogItem(Context context, CatalogItem updatedItem) {

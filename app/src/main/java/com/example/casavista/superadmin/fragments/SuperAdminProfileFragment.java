@@ -37,6 +37,7 @@ import com.example.casavista.auth.LoginActivity;
 import com.example.casavista.data.EmployeeRepository;
 import com.example.casavista.helpers.AvatarHelper;
 import com.example.casavista.models.Employee;
+import com.example.casavista.network.SupabaseClient;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -64,6 +65,7 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
     private ShapeableImageView imgProfileAvatar;
     private ImageView btnChangePhoto;
     private TextView tvSuperAdminName, tvSuperAdminEmail, tvRoleBadge;
+    private TextView tvStatActiveStaff, tvStatBookings;
     private MaterialButton btnLogout, btnAddRole, btnEditProfile;
     private MaterialCardView btnStaffSchedule, btnGuestReviews;
     private SwitchMaterial switchDarkMode;
@@ -74,15 +76,12 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
     private final ActivityResultLauncher<String> photoPickerLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri != null && getContext() != null) {
-                    String savedPath = saveAvatarToInternalStorage(uri);
-                    if (savedPath != null) {
-                        SharedPreferences prefs = requireContext().getSharedPreferences(PROFILE_PREFS, Context.MODE_PRIVATE);
-                        prefs.edit().putString(KEY_AVATAR_PATH, savedPath).apply();
-
-                        AvatarHelper.saveProfileImage(requireContext(), uri);
-                        restoreSavedPreferences();
-                        Toast.makeText(getContext(), "Profile photo updated successfully!", Toast.LENGTH_SHORT).show();
-                    }
+                    AvatarHelper.saveProfileImage(requireContext(), "superadmin@casavista.com", uri, () -> {
+                        if (isAdded()) {
+                            restoreSavedPreferences();
+                            Toast.makeText(getContext(), "Profile photo updated & synced to Supabase!", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 }
             });
 
@@ -102,6 +101,8 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
         tvSuperAdminName = view.findViewById(R.id.tvSuperAdminName);
         tvSuperAdminEmail = view.findViewById(R.id.tvSuperAdminEmail);
         tvRoleBadge = view.findViewById(R.id.tvRoleBadge);
+        tvStatActiveStaff = view.findViewById(R.id.tvStatActiveStaff);
+        tvStatBookings = view.findViewById(R.id.tvStatBookings);
         btnEditProfile = view.findViewById(R.id.btnEditProfile);
 
         btnLogout = view.findViewById(R.id.btnLogout);
@@ -142,32 +143,7 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
             switchDarkMode.setChecked(isDarkMode);
         }
 
-        String savedPath = profilePrefs.getString(KEY_AVATAR_PATH, null);
-        if (savedPath != null && imgProfileAvatar != null) {
-            try {
-                File imgFile = new File(savedPath);
-                if (imgFile.exists()) {
-                    Bitmap bitmap = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-                    if (bitmap != null) {
-                        imgProfileAvatar.setImageBitmap(bitmap);
-                        return;
-                    }
-                }
-            } catch (Exception ignored) {}
-        }
-
-        File defaultFile = new File(requireContext().getFilesDir(), "super_admin_avatar.jpg");
-        if (defaultFile.exists() && imgProfileAvatar != null) {
-            Bitmap bitmap = BitmapFactory.decodeFile(defaultFile.getAbsolutePath());
-            if (bitmap != null) {
-                imgProfileAvatar.setImageBitmap(bitmap);
-                return;
-            }
-        }
-
-        if (imgProfileAvatar != null) {
-            imgProfileAvatar.setImageResource(R.drawable.ic_profile);
-        }
+        AvatarHelper.loadAvatar(requireContext(), email, imgProfileAvatar, null, name);
     }
 
     private String saveAvatarToInternalStorage(Uri imageUri) {
@@ -324,9 +300,43 @@ public class SuperAdminProfileFragment extends Fragment implements EmployeeAdapt
     }
 
     private void loadEmployeeList() {
-        if (getContext() != null && adapter != null) {
+        if (getContext() != null) {
             List<Employee> updatedList = EmployeeRepository.getInstance().getEmployees(requireContext());
-            adapter.updateData(updatedList);
+            if (adapter != null) {
+                adapter.updateData(updatedList);
+            }
+            if (tvStatActiveStaff != null) {
+                tvStatActiveStaff.setText(String.valueOf(updatedList.size()));
+            }
+
+            // Query live today's bookings count
+            SupabaseClient.getInstance().fetchBookings(new SupabaseClient.DataCallback() {
+                @Override
+                public void onSuccess(String jsonResponse) {
+                    try {
+                        org.json.JSONArray arr = new org.json.JSONArray(jsonResponse);
+                        int count = 0;
+                        String todayStr = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.US).format(new java.util.Date());
+                        for (int i = 0; i < arr.length(); i++) {
+                            org.json.JSONObject b = arr.getJSONObject(i);
+                            String status = b.optString("status", "");
+                            String bDate = b.optString("booking_date", "");
+                            String cIn = b.optString("check_in_date", "");
+                            if (("Confirmed".equalsIgnoreCase(status) || "Checked-In".equalsIgnoreCase(status))
+                                    && (bDate.startsWith(todayStr) || cIn.startsWith(todayStr))) {
+                                count++;
+                            }
+                        }
+                        final int finalCount = count;
+                        if (isAdded() && tvStatBookings != null) {
+                            tvStatBookings.setText(String.valueOf(finalCount));
+                        }
+                    } catch (Exception ignored) {}
+                }
+
+                @Override
+                public void onError(String errorMessage) {}
+            });
         }
     }
 
